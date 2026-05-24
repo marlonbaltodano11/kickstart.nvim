@@ -602,7 +602,7 @@ require('lazy').setup({
       --  See `:help lsp-config` for information about keys and how to configure
       ---@type table<string, vim.lsp.Config>
       local servers = {
-        csharp_ls = {},
+        -- csharp_ls = {},
         -- clangd = {},
         -- gopls = {},
         -- pyright = {},
