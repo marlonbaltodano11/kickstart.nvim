@@ -5,6 +5,20 @@ vim.keymap.set('n', '<leader>e', '<cmd>Neotree toggle<CR>', { desc = 'Toggle Exp
 local term_buf = nil
 local term_win = nil
 
+local function get_shell_command()
+  if vim.fn.has('win32') == 1 then
+    return {
+      'C:\\PROGRA~1\\Git\\bin\\bash.exe',
+      '--login',
+      '-i',
+    }
+  end
+
+  return {
+    vim.o.shell,
+  }
+end
+
 local function toggle_terminal()
   if term_win and vim.api.nvim_win_is_valid(term_win) then
     vim.api.nvim_win_hide(term_win)
@@ -18,12 +32,7 @@ local function toggle_terminal()
       vim.cmd('enew')
       term_buf = vim.api.nvim_get_current_buf()
 
-      local git_bash = 'C:\\PROGRA~1\\Git\\bin\\bash.exe'
-      vim.fn.jobstart({
-        git_bash,
-        '--login',
-        '-i'
-      }, { term = true })
+      vim.fn.jobstart(get_shell_command(), { term = true })
 
       vim.wo[term_win].number = false
       vim.wo[term_win].relativenumber = false
