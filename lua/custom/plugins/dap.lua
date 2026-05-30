@@ -30,17 +30,7 @@ return {
         args = { '--interpreter=vscode' },
       }
 
-      dap.configurations.cs = {
-        {
-          type = 'coreclr',
-          name = 'Attach - .NET process',
-          request = 'attach',
-
-          processId = function()
-            return require('dap.utils').pick_process()
-          end,
-        },
-      }
+      dap.configurations.cs = { }
     end,
   },
 }

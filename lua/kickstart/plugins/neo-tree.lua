@@ -25,5 +25,10 @@ return {
         },
       },
     },
+    opts = {
+      clipboard = {
+        sync = "universal",
+      },
+    },
   },
 }

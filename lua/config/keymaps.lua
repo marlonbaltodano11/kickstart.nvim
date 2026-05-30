@@ -1,5 +1,5 @@
 -- Alternar el explorador de archivos Neo-tree
-vim.keymap.set('n', '<leader>e', '<cmd>Neotree toggle<CR>', { desc = 'Toggle Explorer' })
+-- vim.keymap.set('n', '<leader>e', '<cmd>Neotree toggle<CR>', { desc = 'Toggle Explorer' })
 
 -- Open git bash terminal
 local term_buf = nil
@@ -105,34 +105,56 @@ end, { desc = "[C]opy [R]elative Path" })
 vim.keymap.set('v', '<', '<gv')
 vim.keymap.set('v', '>', '>gv')
 
--- Keymaps for dotnet commands
-vim.keymap.set("n", "<leader>cb", function()
-  vim.cmd("split | terminal dotnet build")
-end, { desc = "[C]# [B]uild solution" })
+-- Reveal currently open file in neotree
+-- vim.keymap.set('n', '<leader>rf', ':Neotree action=focus reveal<CR>', { desc = '[R]eveal and [F]ocus in NeoTree' })
+-- vim.keymap.set('n', '<leader>rs', ':Neotree action=show reveal<CR>', { desc = '[R]eveal and [S]how (no focus)' })
 
--- Keymaps for dotnet commands
-vim.keymap.set("n", "<leader>cR", function()
-  vim.cmd("split | terminal dotnet build")
-end, { desc = "[C]# [B]uild solution" })
+-- Jump to the NEXT ERROR
+vim.keymap.set('n', ']E', function()
+  vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR })
+end, { desc = 'Jump to next error' })
+
+-- Jump to the PREVIOUS ERROR
+vim.keymap.set('n', '[E', function()
+  vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR })
+end, { desc = 'Jump to previous error' })
+
+-- Easy Dotnet commands:
+vim.keymap.set("n", "<leader>cr", "<cmd>Dotnet run profile Development<cr>", { desc = "[C]sharp [R]un" })
+
+-- Para elegir qué proyecto correr si el automático falla:
+vim.keymap.set("n", "<leader>cs", "<cmd>Dotnet select_project<cr>", { desc = "[C]sharp [S]elect Project" })
+
+-- Build, Restore y Clean (usando el plugin es más limpio)
+vim.keymap.set("n", "<leader>cb", "<cmd>Dotnet build quickfix<cr>", { desc = "[C]sharp [B]uild" })
+vim.keymap.set("n", "<leader>cR", "<cmd>Dotnet restore<cr>", { desc = "[C]sharp [R]estore" })
+vim.keymap.set("n", "<leader>cC", "<cmd>Dotnet clean<cr>", { desc = "[C]sharp [C]lean" })
+
+-- Test (Algo que tu script no hacía pero easy-Dotnet sí)
+vim.keymap.set("n", "<leader>cat", "<cmd>Dotnet test<cr>", { desc = "[C]sharp [T]est" })
+
+vim.keymap.set("n", "<leader>ct", "<cmd>Dotnet testrunner<CR>", { desc = "[C]sharp [T]est Runner" })
+
+vim.keymap.set({ 'n', 'v', 't' }, "<leader>cT", "<cmd>Dotnet terminal toggle<CR>", { desc = "[C]sharp [T]erminal Toggle" })
 
 -------------------------------------------------------------------------------------------------------
 -------------------[DEBUGGING KEYMAPS SECTION]------------------------
 -------------------------------------------------------------------------------------------------------
 vim.keymap.set('n', '<F5>', function()
   require('dap').continue()
-end)
-
-vim.keymap.set('n', '<F10>', function()
-  require('dap').step_over()
-end)
+end, { desc = 'Start/Continue Debugging' })
 
 vim.keymap.set('n', '<F9>', function()
   require('dap').step_into()
-end)
+end, { desc = 'Step Into' })
+
+vim.keymap.set('n', '<F10>', function()
+  require('dap').step_over()
+end, { desc = 'Step Over' })
 
 vim.keymap.set('n', '<F12>', function()
   require('dap').step_out()
-end)
+end, { desc = 'Step Out' })
 
 vim.keymap.set('n', '<leader>b', function()
   require('dap').toggle_breakpoint()

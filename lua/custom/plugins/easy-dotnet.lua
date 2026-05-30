@@ -1,7 +1,7 @@
 return {
   "GustavEikaas/easy-dotnet.nvim",
-  -- Forzamos a que cargue cuando abras la solución o código C#
-  ft = { "cs", "sln", "csproj" },
+  -- Cargamos el plugin para archivos C#, soluciones y proyectos
+  ft = { "cs", "sln", "csproj", "fsproj" },
   dependencies = {
     "nvim-lua/plenary.nvim",
     "mfussenegger/nvim-dap",
@@ -22,21 +22,19 @@ return {
     dotnet.setup({
       managed_terminal = {
         auto_hide = true,
-        auto_hide_delay = 1000,
+        auto_hide_delay = 2000, -- Un poco más de tiempo para leer si hay errores
       },
 
-      -- 🚀 AQUÍ ESTÁ TU NUEVO LSP DE ROSLYN OFICIAL
+      -- CONFIGURACIÓN DE ROSLYN (LSP OFICIAL)
       lsp = {
-        enabled = true,            -- Reemplaza por completo a csharp-ls
-        preload_roslyn = true,     -- Indexa el código rápido al arrancar
-        roslynator_enabled = true, -- Analizador de código de Microsoft activo
+        enabled = true,
+        preload_roslyn = true,
+        roslynator_enabled = true,
         easy_dotnet_analyzer_enabled = true,
-
-        -- Inyectamos la configuración del servidor nativo de Neovim
         config = {
           capabilities = capabilities,
-          -- Mapeamos tus atajos de teclado indispensables para navegar el código
           on_attach = function(client, bufnr)
+            -- Reutilizamos la lógica de mapeo de Kickstart
             local map = function(keys, func, desc)
               vim.keymap.set('n', keys, func, { buffer = bufnr, desc = 'LSP C#: ' .. desc })
             end
@@ -47,18 +45,21 @@ return {
             map('K', vim.lsp.buf.hover, 'Hover Documentation')
             map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
             map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
+
+            -- Atajo extra para ver errores del proyecto completo
+            map('<leader>sd', require('telescope.builtin').diagnostic, '[S]earch [D]iagnostics')
           end,
         }
       },
 
-      -- Tu Debugger listo
+      -- Debugger configurado para Windows (CoreCLR)
       debugger = {
         bin_path = nil,
         adapter_name = "coreclr",
         console = "integratedTerminal",
       },
 
-      -- Tu Test Runner listo (el árbol visual con la tecla 'o')
+      -- Test Runner flotante (muy cómodo para no perder el foco)
       test_runner = {
         auto_start_testrunner = true,
         viewmode = "float",
@@ -68,10 +69,5 @@ return {
       csproj_mappings = true,
       fsproj_mappings = true,
     })
-
-    -- Atajos globales para ejecutar comandos de la solución multiproyecto
-    local map = vim.keymap.set
-    map("n", "<leader>ct", "<cmd>Dotnet testrunner<CR>", { desc = "[T]est [D]otnet Runner" })
-    map("n", "<leader>cs", "<cmd>Dotnet solution select<CR>", { desc = "[S]olution [S]elect" })
   end
 }
