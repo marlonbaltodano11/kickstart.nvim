@@ -11,19 +11,6 @@ return {
   },
   opts = {
     adapters = {
-      minimax = function()
-        return require("codecompanion.adapters").extend("openai", {
-          name = "minimax",
-          url = "https://api.minimax.io/v1/text/chatcompletion_v2",
-          headers = {
-            ["Authorization"] = "Bearer " .. os.getenv("MINIMAX_API_KEY"),
-            ["Content-Type"] = "application/json",
-          },
-          body = {
-            model = "minimax-m2.7",
-          },
-        })
-      end,
       gemini = function()
         return require("codecompanion.adapters").extend("gemini", {
           name = "gemini",
