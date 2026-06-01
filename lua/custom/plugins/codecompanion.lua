@@ -6,10 +6,6 @@ return {
     { "stevearc/dressing.nvim", opts = {} },
     { 'MeanderingProgrammer/render-markdown.nvim', ft = { 'markdown', 'codecompanion' } }
   },
-  keys = {
-    { "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "v" }, desc = "CodeCompanion Chat" },
-    { "<leader>aa", "<cmd>CodeCompanionActions<cr>", mode = { "n", "v" }, desc = "CodeCompanion Actions" },
-  },
   opts = {
     adapters = {
       gemini = function()
@@ -19,7 +15,7 @@ return {
             api_key = os.getenv("GEMINI_API_KEY"),
           },
           schema = {
-            model = { default = "gemini-3.1-flash-lite" },
+            model = { default = "gemini-3.1-flash-lite-preview" },
           },
         })
       end,
@@ -27,13 +23,18 @@ return {
     strategies = {
       chat = {
         adapter = "gemini",
-        model = "gemini-3.1-flash-lite",
+        model = "gemini-3.1-flash-lite-preview",
       },
       inline = {
         adapter = "gemini",
-        model = "gemini-3.1-flash-lite",
+        model = "gemini-3.1-flash-lite-preview",
       },
     },
+  },
+  keys = {
+    { "<leader>an", "<cmd>CodeCompanionChat adapter=gemini model=gemini-3.1-flash-lite-preview<cr>", mode = { "n", "v" }, desc = "CodeCompanion Chat" },
+    { "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "v" }, desc = "CodeCompanion Chat" },
+    { "<leader>aa", "<cmd>CodeCompanionActions<cr>", mode = { "n", "v" }, desc = "CodeCompanion Actions" },
   },
 }
 
