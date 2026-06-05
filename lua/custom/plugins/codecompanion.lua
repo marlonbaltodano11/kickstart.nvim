@@ -8,17 +8,19 @@ return {
   },
   opts = {
     adapters = {
-      gemini = function()
-        return require("codecompanion.adapters").extend("gemini", {
-          name = "gemini",
-          env = {
-            api_key = os.getenv("GEMINI_API_KEY"),
-          },
-          schema = {
-            model = { default = "gemini-3.1-flash-lite-preview" },
-          },
-        })
-      end,
+      http = {
+        gemini = function()
+          return require("codecompanion.adapters").extend("gemini", {
+            name = "gemini",
+            env = {
+              api_key = os.getenv("GEMINI_API_KEY"),
+            },
+            schema = {
+              model = { default = "gemini-3.1-flash-lite-preview" },
+            },
+          })
+        end,
+      },
     },
     strategies = {
       chat = {
