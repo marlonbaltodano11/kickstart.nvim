@@ -52,6 +52,20 @@ return {
         adapter = "gemini",
       },
     },
+    rules = {
+      default = {
+        description = "Reglas base para el comportamiento del asistente",
+        prompt = "Reglas base que definen el comportamiento por defecto del asistente.",
+        "ai-rules",
+      },
+      ["ai-rules"] = {
+        description = "Reglas personales persistentes",
+        prompt = "Reglas personales persistentes cargadas desde ~/ai-rules.md.",
+        files = {
+          { path = "~/ai-rules.md", parser = "codecompanion" },
+        },
+      },
+    },
   },
   keys = {
     { "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "v" }, desc = "CodeCompanion Chat" },
