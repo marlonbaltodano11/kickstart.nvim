@@ -47,11 +47,9 @@ return {
     strategies = {
       chat = {
         adapter = "gemini",
-        model = "gemini-3.1-flash-lite-preview",
       },
       inline = {
         adapter = "gemini",
-        model = "gemini-3.1-flash-lite-preview",
       },
     },
   },
