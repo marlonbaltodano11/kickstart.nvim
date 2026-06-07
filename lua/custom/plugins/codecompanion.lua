@@ -56,7 +56,6 @@ return {
     },
   },
   keys = {
-    { "<leader>an", "<cmd>CodeCompanionChat adapter=gemini model=gemini-3.1-flash-lite-preview<cr>", mode = { "n", "v" }, desc = "CodeCompanion Chat" },
     { "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "v" }, desc = "CodeCompanion Chat" },
     { "<leader>aa", "<cmd>CodeCompanionActions<cr>", mode = { "n", "v" }, desc = "CodeCompanion Actions" },
   },
