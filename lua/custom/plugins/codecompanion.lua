@@ -56,10 +56,14 @@ return {
       default = {
         description = "Reglas base para el comportamiento del asistente",
         prompt = "Reglas base que definen el comportamiento por defecto del asistente.",
-        "ai-rules",
+        files = {
+          { path = "~/ai-rules.md", parser = "codecompanion" },
+        },
       },
       ["ai-rules"] = {
         description = "Reglas personales persistentes",
+        is_default = true,
+        auto_load = true,
         prompt = "Reglas personales persistentes cargadas desde ~/ai-rules.md.",
         files = {
           { path = "~/ai-rules.md", parser = "codecompanion" },
