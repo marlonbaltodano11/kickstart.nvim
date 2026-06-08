@@ -55,19 +55,70 @@ return {
     },
     rules = {
       default = {
-        description = 'Reglas base para el comportamiento del asistente',
-        prompt = 'Reglas base que definen el comportamiento por defecto del asistente.',
+        description = 'Base rules for assistant behavior',
+        prompt = 'Base rules defining the default behavior of the assistant.',
         files = {
           { path = '~/ai-rules.md', parser = 'codecompanion' },
         },
       },
       ['ai-rules'] = {
-        description = 'Reglas personales persistentes',
-        is_default = true,
-        auto_load = true,
-        prompt = 'Reglas personales persistentes cargadas desde ~/ai-rules.md.',
+        description = 'Base rules defining the default behavior of the assistant.',
+        prompt = 'Persistent personal rules loaded from ~/ai-rules.md.',
         files = {
           { path = '~/ai-rules.md', parser = 'codecompanion' },
+        },
+      },
+    },
+    prompt_library = {
+      ["Generate Commit"] = {
+        strategy = "chat",
+        description = "Generate a semantic commit command based on a git diff",
+        opts = {
+          short_name = "commit",
+          auto_submit = false,
+          is_slash_cmd = false,
+        },
+        prompts = {
+          {
+            role = "system",
+            content = [[You are an expert developer. Your task is to write clear, concise commit messages based on a git diff following the 'Conventional Commits' specification (e.g., feat, fix, refactor, docs, chore). 
+You must explain the WHAT and the WHY, not just the HOW. 
+
+CRITICAL RULE: You must output ONLY the final `git commit` CLI command. Do NOT output a raw text block. For any multi-line commit messages (like adding a body or footer), you MUST use multiple `-m` flags instead of actual line breaks. 
+Example format: `git commit -m "feat: add user authentication" -m "This introduces the JWT-based auth flow to secure the API endpoints."`
+
+Do not provide any introductory text, markdown formatting, or explanations. Just the exact command.]],
+          },
+          {
+            role = "user",
+            content = "@{run_command} Please run the necessary commands to analyze my git diff and generate the appropriate git commit command\n\n",
+          },
+        },
+      },
+      ["Generate Pull Request"] = {
+        strategy = "chat",
+        description = "Generate a detailed description for a Pull Request",
+        opts = {
+          short_name = "pr",
+          auto_submit = false,
+          is_slash_cmd = false,
+        },
+        prompts = {
+          {
+            role = "system",
+            content = [[You are a senior software engineer. Your goal is to write a detailed, professional Pull Request description in Markdown format.
+Structure the response with the following sections:
+1. **Summary:** A quick overview of the changes.
+2. **Key Changes:** A bulleted list of the main modifications.
+3. **Motivation and Context:** Why these changes are being made (the problem being solved).
+4. **How to Test:** Brief testing instructions.
+
+Use a formal yet approachable tone. Do not include greetings or conversational filler.]],
+          },
+          {
+            role = "user",
+            content = "@{run_command} Generate a Pull Request description based the diff between the current branch and the master branch\n\n",
+          },
         },
       },
     },
