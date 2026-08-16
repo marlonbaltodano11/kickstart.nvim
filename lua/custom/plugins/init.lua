@@ -5,4 +5,7 @@
 
 ---@module 'lazy'
 ---@type LazySpec
-return {}
+return {
+  require('custom.plugins.codecompanion'),
+}
+
