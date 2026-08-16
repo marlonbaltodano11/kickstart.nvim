@@ -12,17 +12,8 @@ return {
       max_width = { 50, 0.2 },
       min_width = 30,
     },
-    -- Show only these symbol kinds (C# focused)
-    filter_kind = {
-      'Class',
-      'Constructor',
-      'Enum',
-      'Function',
-      'Interface',
-      'Method',
-      'Property',
-      'Struct',
-    },
+    -- Show all symbol kinds (works for any language)
+    filter_kind = false,
     -- Show line numbers in aerial
     show_linenumbers = false,
     -- Show nested symbols as a tree (collapse big classes)
