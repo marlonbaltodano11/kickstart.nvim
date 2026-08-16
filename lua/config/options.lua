@@ -28,8 +28,10 @@ end
 vim.opt.wrap = false
 
 -- Le dice a Neovim que use Treesitter para calcular dónde están los pliegues lógicos
-vim.opt.foldmethod = "expr"
-vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+-- Se aplica por buffer en el callback de treesitter (init.lua) para evitar
+-- errores de timing al abrir archivos
+vim.opt.foldmethod = 'expr'
+vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
 
 -- Le dice que no colapse todo automáticamente apenas abras el archivo
 vim.opt.foldlevel = 99

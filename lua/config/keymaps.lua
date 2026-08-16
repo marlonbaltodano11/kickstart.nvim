@@ -187,3 +187,21 @@ end, { desc = "[D]ebug [S]copes" })
 -------------------------------------------------------------------------------------------------------
 -------------------[END]------------------------
 -------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------------------
+-------------------[CLIPBOARD KEYMAPS]----------------------
+-------------------------------------------------------------------------------------------------------
+-- Yank (copy) always goes to Windows clipboard
+vim.keymap.set({ 'n', 'v' }, 'y', '"+y')
+vim.keymap.set({ 'n', 'v' }, 'Y', '"+Y')
+
+-- Paste from Windows clipboard
+vim.keymap.set({ 'n', 'v' }, 'p', '"+p')
+vim.keymap.set({ 'n', 'v' }, 'P', '"+P')
+
+-- Paste from last delete (internal register "1)
+vim.keymap.set({ 'n', 'v' }, 'gp', '"1p')
+vim.keymap.set({ 'n', 'v' }, 'gP', '"1P')
+
+-- Keep "p and "P working for manual register access (e.g., "2p)
+-- No mapping needed, they work as default Vim behavior

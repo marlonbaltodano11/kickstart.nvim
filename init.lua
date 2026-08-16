@@ -110,11 +110,12 @@ vim.o.mouse = 'a'
 -- Don't show the mode, since it's already in the status line
 vim.o.showmode = false
 
--- Sync clipboard between OS and Neovim.
---  Schedule the setting after `UiEnter` because it can increase startup-time.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
-vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
+-- Clipboard is NOT synced automatically.
+-- 'y' copies to Windows clipboard, 'p' pastes from Windows clipboard.
+-- 'd', 'c', 'x', 's' only use internal registers (preserved in "1-"9).
+-- Use '"1p' to paste the last deleted text.
+-- See lua/config/keymaps.lua for the clipboard keymaps.
+-- vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
 
 -- Enable break indent
 vim.o.breakindent = true
