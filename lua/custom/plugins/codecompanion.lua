@@ -10,6 +10,26 @@ return {
   opts = {
     adapters = {
       http = {
+        openrouter = function()
+          return require('codecompanion.adapters').extend('openai_compatible', {
+            name = 'openrouter',
+            env = {
+              api_key = os.getenv 'OPENROUTER_API_KEY',
+            },
+            url = 'https://openrouter.ai/api/v1/chat/completions',
+            schema = {
+              model = {
+                default = 'deepseek/deepseek-v4-flash',
+                choices = {
+                  'deepseek/deepseek-v4-flash-0731',
+                  'deepseek/deepseek-v4-pro-0813',
+                  'openai/gpt-5.6-luna',
+                  'openai/gpt-5.6-luna-pro'
+                },
+              },
+            },
+          })
+        end,
         gemini = function()
           return require('codecompanion.adapters').extend('gemini', {
             name = 'gemini',
@@ -43,14 +63,32 @@ return {
             },
           })
         end,
+        deepseek = function()
+          return require('codecompanion.adapters').extend('openai_compatible', {
+            name = 'deepseek',
+            env = {
+              api_key = os.getenv 'DEEPSEEK_API_KEY',
+            },
+            url = 'https://api.deepseek.com/v1/chat/completions',
+            schema = {
+              model = {
+                default = 'deepseek-v4-flash',
+                choices = {
+                  'deepseek-v4-flash',
+                  'deepseek-v4-pro',
+                },
+              },
+            },
+          })
+        end,
       },
     },
     strategies = {
       chat = {
-        adapter = 'gemini',
+        adapter = 'openrouter',
       },
       inline = {
-        adapter = 'gemini',
+        adapter = 'openrouter',
       },
     },
     rules = {
@@ -148,9 +186,9 @@ Use a formal yet approachable tone. Do not include greetings or conversational f
           auto_generate_title = true,
           title_generation_opts = {
             ---Adapter for generating titles (defaults to current chat adapter)
-            adapter = nil, -- "copilot"
+            adapter = "openrouter", -- "copilot"
             ---Model for generating titles (defaults to current chat model)
-            model = nil, -- "gpt-4o"
+            model = "deepseek/deepseek-v4-flash", -- "gpt-4o"
             ---Number of user prompts after which to refresh the title (0 to disable)
             refresh_every_n_prompts = 0, -- e.g., 3 to refresh after every 3rd user prompt
             ---Maximum number of times to refresh the title (default: 3)
