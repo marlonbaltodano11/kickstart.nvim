@@ -1,3 +1,6 @@
+eyJjb2RlIjoiYTQ0NzZjYjctNDNkMC00NWMxLTg4ZGQtMDJkN2UyMzM0MjVkIiwic3RhdGUiOiIzYWJmNWM1MS1mZDFjLTQ1NGQtODI0MC0xYTNkMGY2ODlhYzIiLCJyZWRpcmVjdF91cmkiOiJodHRwczovL2FjY291bnQuamV0YnJhaW5zLmNvbS9vYXV0aDIvaWRlL2NhbGxiYWNrIn0=
+
+
 # kickstart.nvim
 
 ## Introduction
