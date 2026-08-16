@@ -7,7 +7,6 @@ return {
     'nvim-lua/plenary.nvim',
     'nvim-treesitter/nvim-treesitter',
     { 'stevearc/dressing.nvim', opts = {} },
-    { 'MeanderingProgrammer/render-markdown.nvim', ft = { 'markdown', 'codecompanion' } },
     'ravitemer/codecompanion-history.nvim',
   },
   opts = {
