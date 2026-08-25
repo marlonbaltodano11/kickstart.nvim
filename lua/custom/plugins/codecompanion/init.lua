@@ -13,7 +13,7 @@ return {
     adapters = {
       http = require('custom.plugins.codecompanion.adapters'),
     },
-    strategies = require('custom.plugins.codecompanion.strategies'),
+    interactions = require('custom.plugins.codecompanion.interactions'),
     rules = require('custom.plugins.codecompanion.rules'),
     prompt_library = require('custom.plugins.codecompanion.prompts'),
     slash_commands = require('custom.plugins.codecompanion.skills'),
