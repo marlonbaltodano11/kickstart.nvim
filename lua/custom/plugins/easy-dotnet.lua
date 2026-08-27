@@ -13,11 +13,11 @@ return {
     -- dotnet tool install -g roslyn-language-server --prerelease
     -- dotnet tool install -g roslyn-language-server --prerelease --source https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json
 
-    -- 1. Intentamos heredar de forma segura las capacidades de autocompletado de tu Kickstart
-    local has_cmp, cmp_lsp = pcall(require, "cmp_nvim_lsp")
-    local capabilities = has_cmp
-      and cmp_lsp.default_capabilities()
-      or vim.lsp.protocol.make_client_capabilities()
+    local capabilities = vim.lsp.protocol.make_client_capabilities()
+    local has_blink, blink = pcall(require, "blink.cmp")
+    if has_blink and blink.get_lsp_capabilities then
+      capabilities = blink.get_lsp_capabilities(capabilities)
+    end
 
     dotnet.setup({
       managed_terminal = {
@@ -43,11 +43,11 @@ return {
             map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
             map('gI', vim.lsp.buf.implementation, '[G]oto [I]mplementation')
             map('K', vim.lsp.buf.hover, 'Hover Documentation')
-            map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+            -- Code actions use the general LSP mapping `<leader>.`; keep the C# namespace for tests/builds.
+
             map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
 
-            -- Atajo extra para ver errores del proyecto completo
-            map('<leader>sd', require('telescope.builtin').diagnostic, '[S]earch [D]iagnostics')
+
           end,
         }
       },

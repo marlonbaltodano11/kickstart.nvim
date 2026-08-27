@@ -254,8 +254,29 @@ rtp:prepend(lazypath)
 --  To update plugins you can run
 --    :Lazy update
 --
--- NOTE: Here is where you install your plugins.
+
 require('lazy').setup({
+  {
+    'folke/trouble.nvim',
+    cmd = 'Trouble',
+    opts = {},
+    keys = {
+      { '<leader>xx', '<cmd>Trouble diagnostics toggle<cr>', desc = 'Diagnostics (Trouble)' },
+      { '<leader>xq', '<cmd>Trouble qflist toggle<cr>', desc = 'Quickfix (Trouble)' },
+    },
+  },
+
+  {
+    'folke/flash.nvim',
+    event = 'VeryLazy',
+    opts = {},
+    keys = {
+      { 's', function() require('flash').jump() end, mode = { 'n', 'x', 'o' }, desc = 'Flash jump' },
+      { 'S', function() require('flash').treesitter() end, mode = { 'n', 'x', 'o' }, desc = 'Flash treesitter' },
+    },
+  },
+
+
   -- NOTE: Plugins can be added via a link or github org/name. To run setup automatically, use `opts = {}`
   { 'NMAC427/guess-indent.nvim', opts = {} },
 
@@ -854,6 +875,10 @@ require('lazy').setup({
 
   { -- Collection of various small independent plugins/modules
     'nvim-mini/mini.nvim',
+    dependencies = {
+      -- Provides Treesitter textobject queries used by mini.ai's m and c objects.
+      { 'nvim-treesitter/nvim-treesitter-textobjects', branch = 'main' },
+    },
     config = function()
       -- Better Around/Inside textobjects
       --
@@ -861,20 +886,22 @@ require('lazy').setup({
       --  - va)  - [V]isually select [A]round [)]paren
       --  - yiiq - [Y]ank [I]nside [I]+1 [Q]uote
       --  - ci'  - [C]hange [I]nside [']quote
+      local gen_spec = require('mini.ai').gen_spec
       require('mini.ai').setup {
-        -- NOTE: Avoid conflicts with the built-in incremental selection mappings on Neovim>=0.12 (see `:help treesitter-incremental-selection`)
+        -- Avoid conflicts with Neovim 0.12 incremental selection mappings.
         mappings = {
           around_next = 'aa',
           inside_next = 'ii',
         },
+        custom_textobjects = {
+          m = gen_spec.treesitter({ a = '@function.outer', i = '@function.inner' }),
+          c = gen_spec.treesitter({ a = '@class.outer', i = '@class.inner' }),
+        },
         n_lines = 500,
       }
 
-      -- Add/delete/replace surroundings (brackets, quotes, etc.)
-      --
-      -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
-      -- - sd'   - [S]urround [D]elete [']quotes
-      -- - sr)'  - [S]urround [R]eplace [)] [']
+      require('mini.visits').setup()
+      require('mini.files').setup()
       require('mini.surround').setup()
 
       -- Simple and easy statusline.
@@ -890,9 +917,13 @@ require('lazy').setup({
       ---@diagnostic disable-next-line: duplicate-set-field
       statusline.section_location = function() return '%2l:%-2v' end
 
-      -- ... and there is more!
-      --  Check out: https://github.com/nvim-mini/mini.nvim
     end,
+    keys = {
+      { '<leader>e', function() require('mini.files').open(vim.api.nvim_buf_get_name(0), true) end, desc = 'Open mini.files' },
+      { '<leader>vv', '<cmd>lua require("mini.visits").add_label("marked")<cr>', desc = 'Mark file' },
+      { '<leader>vV', '<cmd>lua require("mini.visits").remove_label("marked")<cr>', desc = 'Unmark file' },
+      { '<leader>vl', '<cmd>lua require("mini.visits").select_path("", { filter = "marked" })<cr>', desc = 'List marked files' },
+    },
   },
 
   { -- Highlight, edit, and navigate code
@@ -903,7 +934,7 @@ require('lazy').setup({
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter-intro`
     config = function()
       -- ensure basic parser are installed
-      local parsers = { 'bash', 'c', 'diff', 'html', 'json', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'yaml' }
+      local parsers = { 'bash', 'c', 'diff', 'html', 'json', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'php', 'query', 'vim', 'vimdoc', 'yaml' }
       require('nvim-treesitter').install(parsers)
 
       ---@param buf integer
@@ -961,8 +992,8 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug',
   require 'kickstart.plugins.indent_line',
+
   -- require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
