@@ -4,6 +4,15 @@
 return {
   chat = {
     adapter = 'openrouter',
+    tools = {
+      -- Make YOLO mode include shell commands. Outside YOLO mode, commands
+      -- continue to require approval as usual.
+      ['run_command'] = {
+        opts = {
+          allowed_in_yolo_mode = true,
+        },
+      },
+    },
     keymaps = {
       -- Compactar el chat: genera un resumen y limpia el historial, ahorrando tokens
       compact = {
