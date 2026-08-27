@@ -240,8 +240,14 @@ do
   -- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
   -- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
 
+  -- Load personal options and keymaps while keeping Kickstart's core setup.
+  require 'config.options'
+  require 'config.keymaps'
+  require 'config.commands'
+
   -- [[ Basic Autocommands ]]
   --  See `:help lua-guide-autocommands`
+
 
   -- Highlight when yanking (copying) text
   --  Try it with `yap` in normal mode
@@ -401,7 +407,11 @@ do
 
   -- [[ mini.nvim ]]
   --  A collection of various small independent plugins/modules
-  vim.pack.add { gh 'nvim-mini/mini.nvim' }
+  vim.pack.add {
+    gh 'nvim-mini/mini.nvim',
+    { src = gh 'nvim-treesitter/nvim-treesitter-textobjects', version = 'main' },
+  }
+
 
   -- If a nerd font is available, load the icons module for pretty icons in various plugins.
   if vim.g.have_nerd_font then
@@ -422,8 +432,13 @@ do
       around_next = 'aa',
       inside_next = 'ii',
     },
+    custom_textobjects = {
+      m = require('mini.ai').gen_spec.treesitter { a = '@function.outer', i = '@function.inner' },
+      c = require('mini.ai').gen_spec.treesitter { a = '@class.outer', i = '@class.inner' },
+    },
     n_lines = 500,
   }
+
 
   -- Add/delete/replace surroundings (brackets, quotes, etc.)
   --
@@ -907,7 +922,8 @@ do
   vim.pack.add { { src = gh 'nvim-treesitter/nvim-treesitter', version = 'main' } }
 
   -- Ensure basic parsers are installed
-  local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' }
+  local parsers = { 'bash', 'c', 'diff', 'html', 'json', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'php', 'query', 'vim', 'vimdoc', 'yaml' }
+
   require('nvim-treesitter').install(parsers)
 
   ---@param buf integer
@@ -979,7 +995,8 @@ do
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- require 'custom.plugins'
+  require 'custom.plugins'
+
 end
 
 -- The line beneath this is called `modeline`. See `:help modeline`
