@@ -119,23 +119,9 @@ vim.keymap.set('n', '[E', function()
   vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR })
 end, { desc = 'Jump to previous error' })
 
--- Easy Dotnet commands:
-vim.keymap.set("n", "<leader>cr", "<cmd>Dotnet run profile Development<cr>", { desc = "[C]sharp [R]un" })
+-- C# plugin mappings are defined with the EasyDotnet and Neotest setup.
 
--- Para elegir qué proyecto correr si el automático falla:
-vim.keymap.set("n", "<leader>cs", "<cmd>Dotnet select_project<cr>", { desc = "[C]sharp [S]elect Project" })
 
--- Build, Restore y Clean (usando el plugin es más limpio)
-vim.keymap.set("n", "<leader>cb", "<cmd>Dotnet build quickfix<cr>", { desc = "[C]sharp [B]uild" })
-vim.keymap.set("n", "<leader>cR", "<cmd>Dotnet restore<cr>", { desc = "[C]sharp [R]estore" })
-vim.keymap.set("n", "<leader>cC", "<cmd>Dotnet clean<cr>", { desc = "[C]sharp [C]lean" })
-
--- Test (Algo que tu script no hacía pero easy-Dotnet sí)
-vim.keymap.set("n", "<leader>cat", "<cmd>Dotnet test<cr>", { desc = "[C]sharp [T]est" })
-
-vim.keymap.set('n', '<leader>ct', function() require('neotest').run.run() end, { desc = '[C]sharp [T]est' })
-
-vim.keymap.set({ 'n', 'v', 't' }, "<leader>cT", "<cmd>Dotnet terminal toggle<CR>", { desc = "[C]sharp [T]erminal Toggle" })
 
 -------------------------------------------------------------------------------------------------------
 -------------------[DEBUGGING KEYMAPS SECTION]------------------------

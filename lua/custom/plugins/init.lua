@@ -7,9 +7,8 @@ end
 -- CodeCompanion and its integrations.
 add 'https://github.com/olimorris/codecompanion.nvim'
 add 'https://github.com/ravitemer/codecompanion-history.nvim'
-add 'https://github.com/nvim-lua/plenary.nvim'
-add 'https://github.com/nvim-treesitter/nvim-treesitter'
 add 'https://github.com/stevearc/dressing.nvim'
+
 
 require('codecompanion').setup {
   adapters = {
@@ -81,7 +80,8 @@ dotnet.setup {
     config = { capabilities = capabilities },
   },
   debugger = { adapter_name = 'coreclr', console = 'integratedTerminal' },
-  test_runner = { auto_start_testrunner = true, viewmode = 'float', neotest_integration = false },
+  test_runner = { auto_start_testrunner = false, viewmode = 'float', neotest_integration = false },
+
   csproj_mappings = true,
   fsproj_mappings = true,
 }
@@ -92,7 +92,9 @@ vim.keymap.set('n', '<leader>cb', '<cmd>Dotnet build quickfix<cr>', { desc = '[C
 vim.keymap.set('n', '<leader>cR', '<cmd>Dotnet restore<cr>', { desc = '[C]sharp [R]estore' })
 vim.keymap.set('n', '<leader>cC', '<cmd>Dotnet clean<cr>', { desc = '[C]sharp [C]lean' })
 vim.keymap.set('n', '<leader>cat', '<cmd>Dotnet test<cr>', { desc = '[C]sharp [T]est' })
-vim.keymap.set('n', '<leader>ct', '<cmd>Dotnet testrunner<CR>', { desc = '[C]sharp [T]est Runner' })
+vim.keymap.set('n', '<leader>ct', function() require('neotest').run.run() end, { desc = '[C]sharp [T]est' })
+vim.keymap.set({ 'n', 'v', 't' }, '<leader>cT', '<cmd>Dotnet terminal toggle<CR>', { desc = '[C]sharp [T]erminal Toggle' })
+
 
 -- Navigation and diagnostics.
 vim.pack.add {
@@ -106,3 +108,4 @@ vim.pack.add {
   'https://github.com/nvim-neotest/neotest',
   'https://github.com/CitizenHarris/neotest-dotnet',
 }
+require('custom.plugins.neotest').setup()
