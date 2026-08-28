@@ -420,24 +420,20 @@ do
     MiniIcons.mock_nvim_web_devicons()
   end
 
-  -- Better Around/Inside textobjects
-  --
-  -- Examples:
-  --  - va)  - [V]isually select [A]round [)]paren
-  --  - yiiq - [Y]ank [I]nside [I]+1 [Q]uote
-  --  - ci'  - [C]hange [I]nside [']quote
-  require('mini.ai').setup {
-    -- NOTE: Avoid conflicts with the built-in incremental selection mappings on Neovim>=0.12 (see `:help treesitter-incremental-selection`)
-    mappings = {
-      around_next = 'aa',
-      inside_next = 'ii',
-    },
-    custom_textobjects = {
-      m = require('mini.ai').gen_spec.treesitter { a = '@function.outer', i = '@function.inner' },
-      c = require('mini.ai').gen_spec.treesitter { a = '@class.outer', i = '@class.inner' },
-    },
-    n_lines = 500,
+  require('custom.function-textobject').setup()
+
+  -- Persistent file bookmarks using mini.visits. The `core` label is the
+  -- project-specific collection exposed through <leader>v* and [v/]v.
+  require('mini.visits').setup {
+    list = { filter = nil, sort = nil },
+    silent = true,
   }
+  vim.keymap.set('n', '<leader>vv', function() MiniVisits.add_label('core') end, { desc = 'Add current file to Core' })
+  vim.keymap.set('n', '<leader>vV', function() MiniVisits.remove_label('core') end, { desc = 'Remove current file from Core' })
+  vim.keymap.set('n', '<leader>vc', function() MiniVisits.select_path { filter = { label = 'core' } } end, { desc = 'Choose a Core file' })
+  vim.keymap.set('n', '<leader>vr', function() MiniVisits.select_path { filter = { cwd = true } } end, { desc = 'Recent files in cwd' })
+  vim.keymap.set('n', ']v', function() MiniVisits.iterate_paths('forward', { filter = { label = 'core' } }) end, { desc = 'Next Core file' })
+  vim.keymap.set('n', '[v', function() MiniVisits.iterate_paths('backward', { filter = { label = 'core' } }) end, { desc = 'Previous Core file' })
 
 
   -- Add/delete/replace surroundings (brackets, quotes, etc.)

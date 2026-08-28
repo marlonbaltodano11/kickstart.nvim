@@ -133,7 +133,7 @@ vim.keymap.set("n", "<leader>cC", "<cmd>Dotnet clean<cr>", { desc = "[C]sharp [C
 -- Test (Algo que tu script no hacía pero easy-Dotnet sí)
 vim.keymap.set("n", "<leader>cat", "<cmd>Dotnet test<cr>", { desc = "[C]sharp [T]est" })
 
-vim.keymap.set("n", "<leader>ct", "<cmd>Dotnet testrunner<CR>", { desc = "[C]sharp [T]est Runner" })
+vim.keymap.set('n', '<leader>ct', function() require('neotest').run.run() end, { desc = '[C]sharp [T]est' })
 
 vim.keymap.set({ 'n', 'v', 't' }, "<leader>cT", "<cmd>Dotnet terminal toggle<CR>", { desc = "[C]sharp [T]erminal Toggle" })
 

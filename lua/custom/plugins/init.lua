@@ -93,4 +93,16 @@ vim.keymap.set('n', '<leader>cR', '<cmd>Dotnet restore<cr>', { desc = '[C]sharp 
 vim.keymap.set('n', '<leader>cC', '<cmd>Dotnet clean<cr>', { desc = '[C]sharp [C]lean' })
 vim.keymap.set('n', '<leader>cat', '<cmd>Dotnet test<cr>', { desc = '[C]sharp [T]est' })
 vim.keymap.set('n', '<leader>ct', '<cmd>Dotnet testrunner<CR>', { desc = '[C]sharp [T]est Runner' })
-vim.keymap.set({ 'n', 'v', 't' }, '<leader>cT', '<cmd>Dotnet terminal toggle<CR>', { desc = '[C]sharp [T]erminal Toggle' })
+
+-- Navigation and diagnostics.
+vim.pack.add {
+  'https://github.com/folke/flash.nvim',
+  'https://github.com/folke/trouble.nvim',
+}
+require('custom.plugins.flash').setup()
+require('custom.plugins.trouble').setup()
+
+vim.pack.add {
+  'https://github.com/nvim-neotest/neotest',
+  'https://github.com/CitizenHarris/neotest-dotnet',
+}
