@@ -11,7 +11,10 @@ function M.setup()
       inside_next = 'ii',
     },
     custom_textobjects = {
-      m = ai.gen_spec.treesitter { a = '@function.outer', i = '@function.inner' },
+      m = ai.gen_spec.treesitter {
+        a = '@method_declaration.outer',
+        i = '@method_declaration.inner',
+      },
       F = ai.gen_spec.treesitter { a = '@function.outer', i = '@function.inner' },
       c = ai.gen_spec.treesitter { a = '@class.outer', i = '@class.inner' },
     },

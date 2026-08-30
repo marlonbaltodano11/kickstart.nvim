@@ -257,6 +257,36 @@ do
     group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
     callback = function() vim.hl.on_yank() end,
   })
+
+  vim.api.nvim_create_autocmd('BufWritePre', {
+    group = vim.api.nvim_create_augroup('config-normalize-crlf', { clear = true }),
+    callback = function(ev)
+      local bo = vim.bo[ev.buf]
+      if bo.buftype ~= '' or not bo.modifiable or bo.binary or bo.readonly then return end
+      vim.api.nvim_buf_call(ev.buf, function() vim.cmd [[silent! %s/\r$//e]] end)
+    end,
+  })
+
+  vim.api.nvim_create_autocmd('VimLeavePre', {
+    group = vim.api.nvim_create_augroup('config-shutdown-processes', { clear = true }),
+    callback = function()
+      for _, client in pairs(vim.lsp.get_clients()) do pcall(function() client:stop(true) end) end
+      local ok, dap = pcall(require, 'dap')
+      if ok then pcall(dap.terminate, dap) end
+      for _, info in ipairs(vim.api.nvim_list_chans()) do
+        if info.id and (info.mode == 'job' or info.mode == 'terminal' or info.mode == 'rpc') then
+          if info.mode == 'job' or info.mode == 'terminal' then pcall(vim.fn.jobstop, info.id) end
+          pcall(vim.fn.chanclose, info.id)
+        end
+      end
+      if package.loaded.neotest then
+        local neotest = require('neotest')
+        pcall(neotest.run.stop)
+        pcall(neotest.summary.close)
+      end
+    end,
+  })
+
 end
 
 -- ============================================================
@@ -420,7 +450,11 @@ do
     MiniIcons.mock_nvim_web_devicons()
   end
 
-  require('custom.function-textobject').setup()
+  require('mini.files').setup {}
+  vim.keymap.set('n', '<leader>e', function()
+    require('mini.files').open(vim.api.nvim_buf_get_name(0), true)
+  end, { desc = 'Open mini.files' })
+
 
   -- Persistent file bookmarks using mini.visits. The `core` label is the
   -- project-specific collection exposed through <leader>v* and [v/]v.
@@ -647,9 +681,8 @@ do
         vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
       end
 
-      -- Rename the variable under your cursor.
-      --  Most Language Servers support renaming across files, etc.
-      map('grn', vim.lsp.buf.rename, '[R]e[n]ame')
+      map('gd', function() require('telescope.builtin').lsp_definitions() end, '[G]oto [D]efinition')
+      map('grd', function() require('telescope.builtin').lsp_definitions() end, '[G]oto [D]efinition')
 
       -- Execute a code action, usually your cursor needs to be on top of an error
       -- or a suggestion from your LSP for this to activate.
@@ -665,6 +698,7 @@ do
       --
       -- When you move your cursor, the highlights will be cleared (the second autocommand).
       local client = vim.lsp.get_client_by_id(event.data.client_id)
+      if client then client.config.exit_timeout = 500 end
       if client and client:supports_method('textDocument/documentHighlight', event.buf) then
         local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
         vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
@@ -736,7 +770,10 @@ do
             checkThirdParty = false,
             -- NOTE: this is a lot slower and will cause issues when working on your own configuration.
             --  See https://github.com/neovim/nvim-lspconfig/issues/3189
-            library = vim.api.nvim_get_runtime_file('', true),
+            library = {
+              vim.env.VIMRUNTIME,
+              vim.fn.stdpath('data') .. '/site/pack/core/opt/luv/library',
+            },
           },
         })
       end,
@@ -777,6 +814,8 @@ do
   })
 
   require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+
+  vim.lsp.config('*', { exit_timeout = 500 })
 
   for name, server in pairs(servers) do
     vim.lsp.config(name, server)
@@ -918,30 +957,23 @@ do
   vim.pack.add { { src = gh 'nvim-treesitter/nvim-treesitter', version = 'main' } }
 
   -- Ensure basic parsers are installed
-  local parsers = { 'bash', 'c', 'diff', 'html', 'json', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'php', 'query', 'vim', 'vimdoc', 'yaml' }
+  local parsers = { 'bash', 'c', 'c_sharp', 'diff', 'html', 'json', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'php', 'query', 'vim', 'vimdoc', 'yaml' }
 
   require('nvim-treesitter').install(parsers)
 
   ---@param buf integer
   ---@param language string
-  local function treesitter_try_attach(buf, language)
-    -- Check if a parser exists and load it
-    if not vim.treesitter.language.add(language) then return end
-    -- Enable syntax highlighting and other treesitter features
-    vim.treesitter.start(buf, language)
+    local function treesitter_try_attach(buf, language)
+      if not vim.treesitter.language.add(language) then return end
+      vim.schedule(function()
+        if vim.api.nvim_buf_is_valid(buf) then vim.treesitter.start(buf, language) end
+      end)
 
-    -- Enable treesitter based folds
-    -- For more info on folds see `:help folds`
-    -- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
-    -- vim.wo.foldmethod = 'expr'
-
-    -- Check if treesitter indentation is available for this language, and if so enable it
-    -- in case there is no indent query, the indentexpr will fallback to the vim's built in one
-    local has_indent_query = vim.treesitter.query.get(language, 'indents') ~= nil
-
-    -- Enable treesitter based indentation
-    if has_indent_query then vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()" end
-  end
+      -- C# uses Roslyn and synchronous parsing; never install Treesitter indentation.
+      if language == 'c_sharp' then return end
+      local has_indent_query = vim.treesitter.query.get(language, 'indents') ~= nil
+      if has_indent_query then vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()" end
+    end
 
   local available_parsers = require('nvim-treesitter').get_available()
   vim.api.nvim_create_autocmd('FileType', {

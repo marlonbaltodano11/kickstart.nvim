@@ -16,8 +16,8 @@ require('codecompanion').setup {
   },
   interactions = require('custom.plugins.codecompanion.interactions'),
   rules = require('custom.plugins.codecompanion.rules'),
-  prompt_library = require('custom.plugins.codecompanion.prompts'),
-  slash_commands = require('custom.plugins.codecompanion.skills'),
+  prompt_library = vim.tbl_deep_extend('force', require('custom.plugins.codecompanion.prompts'), require('custom.plugins.codecompanion.skills')),
+  -- Skills are prompt-library entries, not slash_commands.
   extensions = require('custom.plugins.codecompanion.extensions'),
 }
 
@@ -81,6 +81,8 @@ dotnet.setup {
   },
   debugger = { adapter_name = 'coreclr', console = 'integratedTerminal' },
   test_runner = { auto_start_testrunner = false, viewmode = 'float', neotest_integration = false },
+  set_fold_expr = false,
+  auto_refresh_codelens = false,
 
   csproj_mappings = true,
   fsproj_mappings = true,

@@ -27,13 +27,7 @@ end
 -- Avoid word wrap
 vim.opt.wrap = false
 
--- Le dice a Neovim que use Treesitter para calcular dónde están los pliegues lógicos
--- Se aplica por buffer en el callback de treesitter (init.lua) para evitar
--- errores de timing al abrir archivos
-vim.opt.foldmethod = 'expr'
-vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
-
--- Le dice que no colapse todo automáticamente apenas abras el archivo
+-- El plegado se mantiene nativo; no usar Treesitter globalmente para folds.
 vim.opt.foldlevel = 99
 vim.opt.foldlevelstart = 99
 vim.opt.foldenable = true
