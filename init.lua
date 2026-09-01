@@ -963,17 +963,17 @@ do
 
   ---@param buf integer
   ---@param language string
-    local function treesitter_try_attach(buf, language)
-      if not vim.treesitter.language.add(language) then return end
-      vim.schedule(function()
-        if vim.api.nvim_buf_is_valid(buf) then vim.treesitter.start(buf, language) end
-      end)
+  local function treesitter_try_attach(buf, language)
+    if not vim.treesitter.language.add(language) then return end
+    vim.schedule(function()
+      if vim.api.nvim_buf_is_valid(buf) then vim.treesitter.start(buf, language) end
+    end)
 
-      -- C# uses Roslyn and synchronous parsing; never install Treesitter indentation.
-      if language == 'c_sharp' then return end
-      local has_indent_query = vim.treesitter.query.get(language, 'indents') ~= nil
-      if has_indent_query then vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()" end
-    end
+    -- C# uses Roslyn and synchronous parsing; never install Treesitter indentation.
+    if language == 'c_sharp' then return end
+    local has_indent_query = vim.treesitter.query.get(language, 'indents') ~= nil
+    if has_indent_query then vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()" end
+  end
 
   local available_parsers = require('nvim-treesitter').get_available()
   vim.api.nvim_create_autocmd('FileType', {

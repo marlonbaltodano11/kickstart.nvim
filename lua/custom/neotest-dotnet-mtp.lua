@@ -8,7 +8,7 @@ function M.setup(opts)
     discovery = { enabled = true },
     discovery_root = 'solution',
     dap = { strategy = require('custom.neotest-dotnet-mtp-debug-strategy') },
-    dotnet_additional_args = { '--no-restore', '--report-trx' },
+    dotnet_additional_args = { '--no-restore' },
   }, opts or {})
 
   local ok, adapter = pcall(require, 'neotest-dotnet')

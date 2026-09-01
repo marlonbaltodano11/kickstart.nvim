@@ -47,7 +47,54 @@ require('render-markdown').setup {}
 
 -- Git conflict helpers.
 add 'https://github.com/akinsho/git-conflict.nvim'
-require('git-conflict').setup { default_mappings = true, disable_diagnostics = false }
+local git_conflict = require('git-conflict')
+git_conflict.setup {
+  default_commands = false,
+  default_mappings = false,
+  disable_diagnostics = false,
+}
+
+local conflict_mappings = {
+  { { 'n', 'v' }, 'co', function() git_conflict.choose 'ours' end, 'Keep ours' },
+  { { 'n', 'v' }, 'ct', function() git_conflict.choose 'theirs' end, 'Keep theirs' },
+  { { 'n', 'v' }, 'cb', function() git_conflict.choose 'both' end, 'Keep both' },
+  { { 'n', 'v' }, 'c0', function() git_conflict.choose 'none' end, 'Keep neither' },
+  { 'n', ']x', function() git_conflict.find_next 'ours' end, 'Next conflict' },
+  { 'n', '[x', function() git_conflict.find_prev 'ours' end, 'Previous conflict' },
+}
+
+local function set_conflict_mappings(bufnr)
+  for _, mapping in ipairs(conflict_mappings) do
+    vim.keymap.set(mapping[1], mapping[2], mapping[3], {
+      buffer = bufnr,
+      silent = true,
+      desc = 'Git Conflict: ' .. mapping[4],
+    })
+  end
+end
+
+local function clear_conflict_mappings(bufnr)
+  for _, mapping in ipairs(conflict_mappings) do
+    for _, mode in ipairs(type(mapping[1]) == 'table' and mapping[1] or { mapping[1] }) do
+      pcall(vim.keymap.del, mode, mapping[2], { buffer = bufnr })
+    end
+  end
+end
+
+local conflict_group = vim.api.nvim_create_augroup('CustomGitConflictMappings', { clear = true })
+vim.api.nvim_create_autocmd('User', {
+  group = conflict_group,
+  pattern = 'GitConflictDetected',
+  callback = function(args)
+    local bufnr = args.buf or vim.api.nvim_get_current_buf()
+    set_conflict_mappings(bufnr)
+  end,
+})
+vim.api.nvim_create_autocmd('User', {
+  group = conflict_group,
+  pattern = 'GitConflictResolved',
+  callback = function(args) clear_conflict_mappings(args.buf or vim.api.nvim_get_current_buf()) end,
+})
 
 -- Debugging, including the Windows CoreCLR adapter used by easy-dotnet.
 add 'https://github.com/mfussenegger/nvim-dap'

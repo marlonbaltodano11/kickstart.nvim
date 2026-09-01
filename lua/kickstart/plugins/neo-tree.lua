@@ -7,10 +7,12 @@ vim.pack.add {
   'https://github.com/MunifTanjim/nui.nvim',
 }
 
-vim.keymap.set('n', '\\', '<Cmd>Neotree reveal<CR>', { desc = 'NeoTree reveal', silent = true })
+vim.keymap.set('n', '\\', '<Cmd>Neotree filesystem left<CR>', { desc = 'NeoTree (CWD)', silent = true })
 
 require('neo-tree').setup {
   filesystem = {
+    bind_to_cwd = true,
+    cwd_target = 'global',
     window = {
       mappings = {
         ['\\'] = 'close_window',

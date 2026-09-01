@@ -1,6 +1,7 @@
-;; Methods and constructors
+;; Methods
 (method_declaration) @function.outer
-(method_declaration) @function.inner
+(method_declaration
+  body: (block) @function.inner)
 (constructor_declaration) @function.outer
 (constructor_declaration) @function.inner
 (local_function_statement) @function.outer
