@@ -24,8 +24,13 @@ if vim.fn.has('wsl') == 1 then
   }
 end
 
--- Avoid word wrap
-vim.opt.wrap = false
+-- Modelines execute commands/options found near the beginning or end of files.
+-- Keep them disabled so generated or externally modified text cannot change the
+-- editor state (and malformed CRLF/modeline text cannot trigger E488).
+vim.opt.modeline = false
+vim.opt.modelines = 0
+vim.opt.modelineexpr = false
+
 
 -- El plegado se mantiene nativo; no usar Treesitter globalmente para folds.
 vim.opt.foldlevel = 99

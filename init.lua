@@ -258,14 +258,6 @@ do
     callback = function() vim.hl.on_yank() end,
   })
 
-  vim.api.nvim_create_autocmd('BufWritePre', {
-    group = vim.api.nvim_create_augroup('config-normalize-crlf', { clear = true }),
-    callback = function(ev)
-      local bo = vim.bo[ev.buf]
-      if bo.buftype ~= '' or not bo.modifiable or bo.binary or bo.readonly then return end
-      vim.api.nvim_buf_call(ev.buf, function() vim.cmd [[silent! %s/\r$//e]] end)
-    end,
-  })
 
   vim.api.nvim_create_autocmd('VimLeavePre', {
     group = vim.api.nvim_create_augroup('config-shutdown-processes', { clear = true }),
