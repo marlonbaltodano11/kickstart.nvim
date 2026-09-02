@@ -6,8 +6,6 @@ vim.g.netrw_altv = 1          -- Abrir divisiones a la derecha
 vim.g.netrw_winsize = 25      -- Ancho predeterminado del 25%
 vim.g.netrw_aleft = 1          -- Forzar que el explorador se abra a la izquierda
 
--- Sincronizar el portapapeles de WSL con Windows
-vim.opt.clipboard = "unnamedplus"
 
 if vim.fn.has('wsl') == 1 then
   vim.g.clipboard = {

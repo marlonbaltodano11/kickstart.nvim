@@ -177,17 +177,18 @@ end, { desc = "[D]ebug [S]copes" })
 -------------------------------------------------------------------------------------------------------
 -------------------[CLIPBOARD KEYMAPS]----------------------
 -------------------------------------------------------------------------------------------------------
--- Yank (copy) always goes to Windows clipboard
-vim.keymap.set({ 'n', 'v' }, 'y', '"+y')
-vim.keymap.set({ 'n', 'v' }, 'Y', '"+Y')
+-- Deletes and changes go to the Windows clipboard without changing Vim's
+-- unnamed-register semantics globally.
+vim.keymap.set({ 'n', 'x' }, 'd', '"+d')
+vim.keymap.set({ 'n', 'x' }, 'c', '"+c')
+vim.keymap.set({ 'n', 'x' }, 'x', '"+x')
 
--- Paste from Windows clipboard
-vim.keymap.set({ 'n', 'v' }, 'p', '"+p')
-vim.keymap.set({ 'n', 'v' }, 'P', '"+P')
+-- Keep yank and paste on native register a while preserving operator-pending
+-- behavior (yy, yiw, p, etc.).
+vim.keymap.set({ 'n', 'x' }, 'y', function() return '"ay' end, { expr = true })
+vim.keymap.set({ 'n', 'x' }, 'p', function() return '"ap' end, { expr = true })
+vim.keymap.set({ 'n', 'x' }, 'P', function() return '"aP' end, { expr = true })
 
--- Paste from last delete (internal register "1)
-vim.keymap.set({ 'n', 'v' }, 'gp', '"1p')
-vim.keymap.set({ 'n', 'v' }, 'gP', '"1P')
-
--- Keep "p and "P working for manual register access (e.g., "2p)
--- No mapping needed, they work as default Vim behavior
+-- Paste from the last delete (internal register "1).
+vim.keymap.set({ 'n', 'x' }, 'gp', '"1p')
+vim.keymap.set({ 'n', 'x' }, 'gP', '"1P')

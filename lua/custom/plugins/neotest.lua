@@ -1,11 +1,13 @@
 local M = {}
 
+
 function M.setup()
   local neotest = require('neotest')
-  local adapter = require('custom.neotest-dotnet-mtp').setup {
-    dap = { strategy = require('custom.neotest-dotnet-mtp-debug-strategy') },
+  local adapter = require('custom.neotest-dotnet-mtp').setup()
+  neotest.setup {
+    adapters = { adapter },
+    discovery = { enabled = true },
   }
-  neotest.setup { adapters = { adapter } }
 
   vim.keymap.set('n', '<leader>tr', function() neotest.run.run() end, { desc = '[T]est [R]un' })
   vim.keymap.set('n', '<leader>tf', function() neotest.run.run(vim.fn.expand '%') end, { desc = '[T]est [F]ile' })

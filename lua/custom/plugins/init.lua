@@ -17,7 +17,6 @@ require('codecompanion').setup {
   interactions = require('custom.plugins.codecompanion.interactions'),
   rules = require('custom.plugins.codecompanion.rules'),
   prompt_library = vim.tbl_deep_extend('force', require('custom.plugins.codecompanion.prompts'), require('custom.plugins.codecompanion.skills')),
-  -- Skills are prompt-library entries, not slash_commands.
   extensions = require('custom.plugins.codecompanion.extensions'),
 }
 
@@ -141,7 +140,7 @@ vim.keymap.set('n', '<leader>cb', '<cmd>Dotnet build quickfix<cr>', { desc = '[C
 vim.keymap.set('n', '<leader>cR', '<cmd>Dotnet restore<cr>', { desc = '[C]sharp [R]estore' })
 vim.keymap.set('n', '<leader>cC', '<cmd>Dotnet clean<cr>', { desc = '[C]sharp [C]lean' })
 vim.keymap.set('n', '<leader>cat', '<cmd>Dotnet test<cr>', { desc = '[C]sharp [T]est' })
-vim.keymap.set('n', '<leader>ct', function() require('neotest').run.run() end, { desc = '[C]sharp [T]est' })
+
 vim.keymap.set({ 'n', 'v', 't' }, '<leader>cT', '<cmd>Dotnet terminal toggle<CR>', { desc = '[C]sharp [T]erminal Toggle' })
 
 

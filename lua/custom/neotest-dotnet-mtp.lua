@@ -6,9 +6,6 @@ local M = {}
 function M.setup(opts)
   opts = vim.tbl_deep_extend('force', {
     discovery = { enabled = true },
-    discovery_root = 'solution',
-    dap = { strategy = require('custom.neotest-dotnet-mtp-debug-strategy') },
-    dotnet_additional_args = { '--no-restore' },
   }, opts or {})
 
   local ok, adapter = pcall(require, 'neotest-dotnet')
