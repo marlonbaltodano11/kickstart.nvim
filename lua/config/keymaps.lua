@@ -175,20 +175,37 @@ end, { desc = "[D]ebug [S]copes" })
 -------------------------------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------------------------------
--------------------[CLIPBOARD KEYMAPS]----------------------
+-------------------[CLIPBOARD POLICY]----------------------
 -------------------------------------------------------------------------------------------------------
--- Deletes and changes go to the Windows clipboard without changing Vim's
--- unnamed-register semantics globally.
-vim.keymap.set({ 'n', 'x' }, 'd', '"+d')
-vim.keymap.set({ 'n', 'x' }, 'c', '"+c')
-vim.keymap.set({ 'n', 'x' }, 'x', '"+x')
+-- The Windows clipboard is written ONLY by explicit yanks (operator 'y'):
+--   yy, yiw, y$, visual y, etc.
+--
+-- Deletes and cuts ('d', 'c', 'x', 's', visual d/c, ...) keep their normal
+-- Vim register behavior (unnamed + numbered registers) and NEVER touch the
+-- system clipboard, so pasting into other apps is not polluted by them.
+--
+-- Explicit register operands such as "ay / "ap / "aP are left untouched
+-- and behave exactly like stock Vim.
+--
+-- Note: with 'clipboard' unset, Vim's "+/*" registers still talk to the
+-- Windows clipboard through Neovim's provider. This autocmd mirrors every
+-- implicit yank (unnamed register) into "+ so it lands in the clip.
+--
+-- Recursion safety: vim.fn.setreg() does NOT trigger TextYankPost.
 
--- Keep yank and paste on native register a while preserving operator-pending
--- behavior (yy, yiw, p, etc.).
-vim.keymap.set({ 'n', 'x' }, 'y', function() return '"ay' end, { expr = true })
-vim.keymap.set({ 'n', 'x' }, 'p', function() return '"ap' end, { expr = true })
-vim.keymap.set({ 'n', 'x' }, 'P', function() return '"aP' end, { expr = true })
+vim.api.nvim_create_autocmd('TextYankPost', {
+  group = vim.api.nvim_create_augroup('to-sys-clipboard-on-yank', { clear = true }),
+  desc = 'Mirror implicit yanks (operator y) into the Windows clipboard',
+  callback = function()
+    local event = vim.v.event
 
--- Paste from the last delete (internal register "1).
-vim.keymap.set({ 'n', 'x' }, 'gp', '"1p')
-vim.keymap.set({ 'n', 'x' }, 'gP', '"1P')
+    -- Only mirror yanks that go through the unnamed register. Explicit
+    -- register copies ("ay, "zy, ...) stay in their named register only.
+    if event.operator ~= 'y' then return end
+    if event.regname ~= '' then return end
+
+    -- Copy the yanked text (preserving its register type) to the system
+    -- clipboard. The native Windows provider (clip.exe) writes it there.
+    vim.fn.setreg('+', event.regcontents, event.regtype)
+  end,
+})
