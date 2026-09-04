@@ -257,18 +257,26 @@ do
   vim.api.nvim_create_autocmd('VimLeavePre', {
     group = vim.api.nvim_create_augroup('config-shutdown-processes', { clear = true }),
     callback = function()
-      for _, client in pairs(vim.lsp.get_clients()) do pcall(function() client:stop(true) end) end
-      local ok, dap = pcall(require, 'dap')
-      if ok then pcall(dap.terminate, dap) end
-      for _, info in ipairs(vim.api.nvim_list_chans()) do
-        if info.id and (info.mode == 'job' or info.mode == 'terminal' or info.mode == 'rpc') then
-          pcall(vim.fn.chanclose, info.id)
-        end
-      end
+      -- Stop Neotest first: running processes must be terminated before their
+      -- channels are closed below, otherwise `:qa` can hang.
       if package.loaded.neotest then
         local neotest = require('neotest')
         pcall(neotest.run.stop)
         pcall(neotest.summary.close)
+      end
+
+      for _, client in pairs(vim.lsp.get_clients()) do pcall(function() client:stop(true) end) end
+      local ok, dap = pcall(require, 'dap')
+      if ok then pcall(dap.terminate, dap) end
+
+      for _, info in ipairs(vim.api.nvim_list_chans()) do
+        if info.id and (info.mode == 'job' or info.mode == 'terminal' or info.mode == 'rpc') then
+          -- `jobstart()` channels report mode 'job' (or 'rpc' when started
+          -- with `rpc=true`); both must be explicitly killed, as Neovim
+          -- `jobwait`s rpc children and `chanclose` alone will not stop them.
+          pcall(vim.fn.jobstop, info.id)
+          pcall(vim.fn.chanclose, info.id)
+        end
       end
     end,
   })
