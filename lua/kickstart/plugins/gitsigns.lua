@@ -5,6 +5,7 @@
 vim.pack.add { 'https://github.com/lewis6991/gitsigns.nvim' }
 
 require('gitsigns').setup {
+  attach_to_untracked = true,
   on_attach = function(bufnr)
     local gitsigns = require 'gitsigns'
 

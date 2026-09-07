@@ -4,6 +4,9 @@
 -- `dap.run()` returns a DAP *session*, not a Process, so returning it directly
 -- makes Neovim crash while dispatching a debug request. Instead we delegate to
 -- Neotest's built-in DAP strategy, which wraps the session in a Process.
+
+---@param result number|nil
+---@return neotest.Process
 local function completed_process(result)
   local output = vim.fn.tempname()
   local f = io.open(output, 'w')
@@ -33,25 +36,42 @@ end
 ---@return neotest.Process
 return function(spec, context)
   local ok, dap_strategy = pcall(require, 'neotest.client.strategies.dap')
-  if not ok or not dap_strategy then return completed_process(1) end
+  if not ok or not dap_strategy then
+    return completed_process(1)
+  end
 
-  -- The built-in DAP strategy reads its launch configuration from
-  -- `spec.strategy`, so translate the adapter's `spec.dap` options into one.
+  local cwd = vim.uv.cwd() or vim.fn.getcwd()
   local dap_config = spec.dap or {}
-  spec.strategy = {
+
+  -- 1. Construir la configuración de lanzamiento del cliente DAP
+  local strategy_config = {
     type = dap_config.adapter_name or 'coreclr',
     request = 'launch',
     name = 'Neotest .NET test (MTP)',
-    program = dap_config.program
-      or function() return vim.fn.input('Test assembly: ', vim.fn.getcwd() .. '/', 'file') end,
-    cwd = dap_config.cwd or vim.fn.getcwd(),
+    program = dap_config.program or function()
+      return vim.fn.input('Test assembly: ', cwd .. '/', 'file')
+    end,
+    cwd = dap_config.cwd or cwd,
     console = dap_config.console or 'integratedTerminal',
   }
-  if type(dap_config.args) == 'table' then
-    spec.strategy = vim.tbl_extend('force', spec.strategy, dap_config.args)
+
+  -- 2. Asignar los argumentos correctamente como la propiedad `args`
+  if type(dap_config.args) == 'table' and not vim.tbl_isempty(dap_config.args) then
+    strategy_config.args = dap_config.args
   end
 
+  -- 3. Asignar variables de entorno si vienen definidas en el DAP config
+  if type(dap_config.env) == 'table' and not vim.tbl_isempty(dap_config.env) then
+    strategy_config.env = dap_config.env
+  end
+
+  spec.strategy = strategy_config
+
+  -- 4. Delegar en la estrategia DAP nativa de Neotest
   local process = dap_strategy(spec, context)
-  if not process then return completed_process(1) end
+  if not process then
+    return completed_process(1)
+  end
+
   return process
 end

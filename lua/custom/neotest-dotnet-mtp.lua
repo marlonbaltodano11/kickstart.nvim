@@ -16,32 +16,51 @@ function M.apply()
   local build_spec_utils = require('neotest-dotnet.utils.build-spec-utils')
 
   ---@param position table
-  ---@param proj_root string
-  ---@param filter_arg string
+  ---@param proj_root string|nil
+  ---@param filter_arg string|nil
   ---@param dotnet_additional_args table|nil
   build_spec_utils.create_single_spec = function(position, proj_root, filter_arg, dotnet_additional_args)
     local results_path = vim.fn.tempname() .. '.trx'
     filter_arg = filter_arg or ''
+    local cwd = vim.uv.cwd() or '.'
 
-    -- Resolve the project to test: a .csproj file is used as-is, otherwise
-    -- the first .csproj found in the project directory is used.
-    local csproj = proj_root
-    if proj_root and proj_root:sub(-7):lower() == '.csproj' then
-      local stat = vim.uv.fs_stat(proj_root)
-      if not stat or stat.type ~= 'file' then csproj = nil end
+    -- 1. Validar que proj_root no se salga del CWD actual para prevenir escaneos fuera del proyecto
+    if proj_root and proj_root ~= '' then
+      local norm_proj = vim.fs.normalize(proj_root)
+      local norm_cwd = vim.fs.normalize(cwd)
+
+      if not vim.startswith(norm_proj, norm_cwd) then
+        proj_root = cwd
+      end
     else
-      csproj = nil
+      proj_root = cwd
     end
 
-    if not csproj then
-      local matches = vim.fn.glob(vim.fs.joinpath(proj_root or '', '*.csproj'), true, true)
-      if type(matches) == 'table' and #matches > 0 then csproj = matches[1] end
+    -- 2. Resolver el archivo .csproj sin realizar búsquedas recursivas profundas
+    local csproj = nil
+    if proj_root:sub(-7):lower() == '.csproj' then
+      local stat = vim.uv.fs_stat(proj_root)
+      if stat and stat.type == 'file' then
+        csproj = proj_root
+      end
+    else
+      -- Búsqueda PLANA (solo en la raíz de proj_root, sin subcarpetas)
+      local matches = vim.fn.glob(vim.fs.joinpath(proj_root, '*.csproj'), true, true)
+      if type(matches) == 'table' and #matches > 0 then
+        csproj = matches[1]
+      end
     end
+
     csproj = csproj or proj_root
 
     local command = { 'dotnet', 'test', csproj }
 
-    if filter_arg ~= '' then table.insert(command, filter_arg) end
+    -- 3. Tokenizar filter_arg si contiene banderas con espacios
+    if filter_arg ~= '' then
+      for token in filter_arg:gmatch('%S+') do
+        table.insert(command, token)
+      end
+    end
 
     table.insert(command, '--results-directory')
     table.insert(command, vim.fs.dirname(results_path))
@@ -72,12 +91,11 @@ function M.apply()
       table.insert(command, vim.g.neotest_dotnet_runsettings_path)
     end
 
-    local command_string = table.concat(command, ' ')
     local logger = require('neotest.logging')
-    logger.debug('neotest-dotnet: Running tests using command: ' .. command_string)
+    logger.debug('neotest-dotnet: Running tests using command: ' .. table.concat(command, ' '))
 
     return {
-      command = command_string,
+      command = command, -- Array de argumentos para ejecución segura sin errores de shell
       context = {
         results_path = results_path,
         file = position.path,

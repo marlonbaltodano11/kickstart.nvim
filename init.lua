@@ -99,7 +99,7 @@ do
   vim.g.maplocalleader = ' '
 
   -- Set to true if you have a Nerd Font installed and selected in the terminal
-  vim.g.have_nerd_font = false
+  vim.g.have_nerd_font = true
 
   -- [[ Setting options ]]
   --  See `:help vim.o`
@@ -253,29 +253,30 @@ do
     callback = function() vim.hl.on_yank() end,
   })
 
-
   vim.api.nvim_create_autocmd('VimLeavePre', {
     group = vim.api.nvim_create_augroup('config-shutdown-processes', { clear = true }),
     callback = function()
-      -- Stop Neotest first: running processes must be terminated before their
-      -- channels are closed below, otherwise `:qa` can hang.
+      -- 1. Stop Neotest
       if package.loaded.neotest then
-        local neotest = require('neotest')
-        pcall(neotest.run.stop)
-        pcall(neotest.summary.close)
+        pcall(require('neotest').run.stop)
+        pcall(require('neotest').summary.close)
       end
 
-      for _, client in pairs(vim.lsp.get_clients()) do pcall(function() client:stop(true) end) end
-      local ok, dap = pcall(require, 'dap')
-      if ok then pcall(dap.terminate, dap) end
+      -- 2. Force Kill LSP clients
+      for _, client in pairs(vim.lsp.get_clients()) do
+        pcall(function() client:stop(true) end)
+      end
 
+      -- 3. Stop DAP session
+      if package.loaded.dap then
+        pcall(require('dap').terminate)
+      end
+
+      -- 4. Stop subprocess/jobs in a safe and direct way
       for _, info in ipairs(vim.api.nvim_list_chans()) do
-        if info.id and (info.mode == 'job' or info.mode == 'terminal' or info.mode == 'rpc') then
-          -- `jobstart()` channels report mode 'job' (or 'rpc' when started
-          -- with `rpc=true`); both must be explicitly killed, as Neovim
-          -- `jobwait`s rpc children and `chanclose` alone will not stop them.
+        if info.mode == 'job' or info.mode == 'terminal' then
+          -- jobstop() is enough to kill the process and free the channel
           pcall(vim.fn.jobstop, info.id)
-          pcall(vim.fn.chanclose, info.id)
         end
       end
     end,
@@ -478,6 +479,10 @@ do
   -- Set `use_icons` to true if you have a Nerd Font
   statusline.setup { use_icons = vim.g.have_nerd_font }
 
+  -- Basic mini.ai setup (mappings, defaults). Custom C# textobjects are
+  -- registered later by `custom.plugins` via `custom.function-textobject`.
+  require('mini.ai').setup {}
+
   -- You can configure sections in the statusline by overriding their
   -- default behavior. For example, here we set the section for
   -- cursor location to LINE:COLUMN
@@ -675,7 +680,7 @@ do
         vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
       end
 
-      map('gd', function() require('telescope.builtin').lsp_definitions() end, '[G]oto [D]efinition')
+      -- map('gd', function() require('telescope.builtin').lsp_definitions() end, '[G]oto [D]efinition')
       map('grd', function() require('telescope.builtin').lsp_definitions() end, '[G]oto [D]efinition')
 
       -- Execute a code action, usually your cursor needs to be on top of an error
@@ -963,8 +968,14 @@ do
       if vim.api.nvim_buf_is_valid(buf) then vim.treesitter.start(buf, language) end
     end)
 
-    -- C# uses Roslyn and synchronous parsing; never install Treesitter indentation.
-    if language == 'c_sharp' then return end
+    -- Enable treesitter based folds
+    -- For more info on folds see `:help folds`
+    -- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+    -- vim.wo.foldmethod = 'expr'
+
+    -- Check if treesitter indentation is available for this language, and if so enable it
+    -- in case there is no indent query, the indentexpr will fallback to the vim's built in one
+
     local has_indent_query = vim.treesitter.query.get(language, 'indents') ~= nil
     if has_indent_query then vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()" end
   end
@@ -1008,17 +1019,23 @@ do
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug'
-  -- require 'kickstart.plugins.indent_line'
-  -- require 'kickstart.plugins.lint'
-  -- require 'kickstart.plugins.autopairs'
+  require 'kickstart.plugins.indent_line'
+  require 'kickstart.plugins.lint'
+  require 'kickstart.plugins.autopairs'
   require 'kickstart.plugins.neo-tree'
   require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
 
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --
-  --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
+  -- For independent modules, uncomment the convenience loader:
+  -- require 'custom.plugins'
+  --
+  -- `custom.plugins` automatically loads files from that directory, but their
+  -- order is unspecified. If plugins depend on each other, keep them in the same
+  -- file and put their `vim.pack.add()` and `setup()` calls in the required order.
+  --
+  -- If separate modules need a specific order, require them explicitly instead:
   require 'custom.plugins'
-
 end
 
 -- The line beneath this is called `modeline`. See `:help modeline`

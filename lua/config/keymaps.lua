@@ -1,22 +1,14 @@
--- Alternar el explorador de archivos Neo-tree
--- vim.keymap.set('n', '<leader>e', '<cmd>Neotree toggle<CR>', { desc = 'Toggle Explorer' })
-
--- Open git bash terminal
+-------------------------------------------------------------------------------------------------------
+-------------------[TERMINAL INTEGRATION]------------------------
+-------------------------------------------------------------------------------------------------------
 local term_buf = nil
 local term_win = nil
 
 local function get_shell_command()
   if vim.fn.has('win32') == 1 then
-    return {
-      'C:\\PROGRA~1\\Git\\bin\\bash.exe',
-      '--login',
-      '-i',
-    }
+    return 'C:\\PROGRA~1\\Git\\bin\\bash.exe --login -i'
   end
-
-  return {
-    vim.o.shell,
-  }
+  return vim.o.shell
 end
 
 local function toggle_terminal()
@@ -36,28 +28,30 @@ local function toggle_terminal()
 
       vim.wo[term_win].number = false
       vim.wo[term_win].relativenumber = false
-      vim.wo[term_win].signcolumn = "no"
+      vim.wo[term_win].signcolumn = 'no'
     end
     vim.cmd('startinsert')
   end
 end
 
--- Atajos
+-- Atajos para Terminal
 vim.keymap.set('n', '<leader>`', toggle_terminal, { desc = 'Toggle Terminal' })
 vim.keymap.set('t', '<leader>`', function()
-  local escape_key = vim.api.nvim_replace_termcodes('<C-\\><C-n>', true, false, true)
-  vim.api.nvim_feedkeys(escape_key, 'n', false)
+  vim.cmd('stopinsert')
   toggle_terminal()
 end, { desc = 'Toggle Terminal' })
 
--- Abrir menú de Code Actions con Alt + Enter
+-------------------------------------------------------------------------------------------------------
+-------------------[GENERAL & NAVIGATION KEYMAPS]------------------------
+-------------------------------------------------------------------------------------------------------
+-- Abrir menú de Code Actions
 vim.keymap.set({ 'n', 'v' }, '<leader>.', vim.lsp.buf.code_action, { desc = 'Code Action' })
 
--- Scroll horizontal con Shift + Rueda del ratón
+-- Scroll horizontal con Alt + Rueda del ratón
 vim.keymap.set({ 'n', 'v' }, '<A-ScrollWheelUp>', '5zh', { desc = 'Scroll horizontal a la izquierda' })
 vim.keymap.set({ 'n', 'v' }, '<A-ScrollWheelDown>', '5zl', { desc = 'Scroll horizontal a la derecha' })
 
--- Mover la línea actual con Alt + Flechas (Modo Normal)
+-- Mover la línea actual con Alt + Flechas
 vim.keymap.set('n', '<A-Up>', '<cmd>m .-2<CR>==', { desc = 'Mover línea hacia arriba' })
 vim.keymap.set('n', '<A-Down>', '<cmd>m .+1<CR>==', { desc = 'Mover línea hacia abajo' })
 
@@ -66,48 +60,43 @@ vim.keymap.set('v', '<A-Up>', ":m '<-2<CR>gv=gv", { desc = 'Mover bloque hacia a
 vim.keymap.set('v', '<A-Down>', ":m '>+1<CR>gv=gv", { desc = 'Mover bloque hacia abajo' })
 
 -- Yank the diagnostic under the cursor
-vim.keymap.set("n", "<leader>yd", function()
+vim.keymap.set('n', '<leader>yd', function()
   local diagnostics = vim.diagnostic.get(0, {
     lnum = vim.api.nvim_win_get_cursor(0)[1] - 1,
   })
 
   if #diagnostics == 0 then
-    print("No diagnostics found")
+    vim.notify('No diagnostics found under cursor', vim.log.levels.INFO)
     return
   end
 
-  local message = diagnostics[1].message
+  local messages = {}
+  for _, diag in ipairs(diagnostics) do
+    table.insert(messages, diag.message)
+  end
 
-  vim.fn.setreg("+", message)
+  local full_message = table.concat(messages, '\n---\n')
+  vim.fn.setreg('+', full_message)
+  vim.notify('Copied ' .. #diagnostics .. ' diagnostic(s) to clipboard', vim.log.levels.INFO)
+end, { desc = '[Y]ank Diagnostic' })
 
-  print("Diagnostic copied to clipboard")
-end, { desc = "[C]opy Diagnostic" })
+-- Copiar ruta absoluta del archivo actual
+vim.keymap.set('n', '<leader>yp', function()
+  local path = vim.fn.expand('%:p')
+  vim.fn.setreg('+', path)
+  vim.notify('Copied absolute path: ' .. path, vim.log.levels.INFO)
+end, { desc = '[Y]ank Absolute [P]ath' })
 
--- Yank the absolute path of the currently open file
-vim.keymap.set("n", "<leader>yp", function()
-  local path = vim.fn.expand("%:p")
-
-  vim.fn.setreg("+", path)
-
-  print("Copied path: " .. path)
-end, { desc = "[C]opy Absolute [P]ath" })
-
--- Yank the relative path of the currently open file
-vim.keymap.set("n", "<leader>yr", function()
-  local path = vim.fn.expand("%")
-
-  vim.fn.setreg("+", path)
-
-  print("Copied relative path: " .. path)
-end, { desc = "[C]opy [R]elative Path" })
+-- Copiar ruta relativa del archivo actual
+vim.keymap.set('n', '<leader>yr', function()
+  local path = vim.fn.expand('%')
+  vim.fn.setreg('+', path)
+  vim.notify('Copied relative path: ' .. path, vim.log.levels.INFO)
+end, { desc = '[Y]ank [R]elative Path' })
 
 -- Better indentation helper
 vim.keymap.set('v', '<', '<gv')
 vim.keymap.set('v', '>', '>gv')
-
--- Reveal currently open file in neotree
--- vim.keymap.set('n', '<leader>rf', ':Neotree action=focus reveal<CR>', { desc = '[R]eveal and [F]ocus in NeoTree' })
--- vim.keymap.set('n', '<leader>rs', ':Neotree action=show reveal<CR>', { desc = '[R]eveal and [S]how (no focus)' })
 
 -- Jump to the NEXT ERROR
 vim.keymap.set('n', ']E', function()
@@ -120,56 +109,27 @@ vim.keymap.set('n', '[E', function()
 end, { desc = 'Jump to previous error' })
 
 -- C# plugin mappings are defined with the EasyDotnet and Neotest setup.
-
-
-
 -------------------------------------------------------------------------------------------------------
 -------------------[DEBUGGING KEYMAPS SECTION]------------------------
 -------------------------------------------------------------------------------------------------------
-vim.keymap.set('n', '<F5>', function()
-  require('dap').continue()
-end, { desc = 'Start/Continue Debugging' })
+vim.keymap.set('n', '<F5>', function() require('dap').continue() end, { desc = 'Start/Continue Debugging' })
+vim.keymap.set('n', '<F9>', function() require('dap').step_into() end, { desc = 'Step Into' })
+vim.keymap.set('n', '<F10>', function() require('dap').step_over() end, { desc = 'Step Over' })
+vim.keymap.set('n', '<F12>', function() require('dap').step_out() end, { desc = 'Step Out' })
 
-vim.keymap.set('n', '<F9>', function()
-  require('dap').step_into()
-end, { desc = 'Step Into' })
+vim.keymap.set('n', '<leader>b', function() require('dap').toggle_breakpoint() end, { desc = 'Toggle breakpoint' })
+vim.keymap.set('n', '<leader>B', function()
+  require('dap').set_breakpoint(vim.fn.input('Breakpoint condition: '))
+end, { desc = 'Add conditional breakpoint' })
 
-vim.keymap.set('n', '<F10>', function()
-  require('dap').step_over()
-end, { desc = 'Step Over' })
-
-vim.keymap.set('n', '<F12>', function()
-  require('dap').step_out()
-end, { desc = 'Step Out' })
-
-vim.keymap.set('n', '<leader>b', function()
-  require('dap').toggle_breakpoint()
-end, { desc = "Toggle breakpoint" })
-
-vim.keymap.set("n", "<leader>B", function()
-  require('dap').set_breakpoint(vim.fn.input("Breakpoint condition: "))
-end, { desc = "Add conditional breakpoint" })
-
-vim.keymap.set("n", "<leader>dq", function()
-  require("dap").terminate()
-end, { desc = "[D]ebug [Q]uit" })
-
-vim.keymap.set("n", "<leader>dr", function()
-  require("dap").restart()
-end, { desc = "[D]ebug [R]estart" })
-
-vim.keymap.set("n", "<leader>de", function()
-  require("dap").repl.open()
-end, { desc = "[D]ebug R[E]PL" })
-
-vim.keymap.set("n", "<leader>dh", function()
-  require("dap.ui.widgets").hover()
-end, { desc = "[D]ebug [H]over Variables" })
-
-vim.keymap.set("n", "<leader>ds", function()
-  local widgets = require("dap.ui.widgets")
+vim.keymap.set('n', '<leader>dq', function() require('dap').terminate() end, { desc = '[D]ebug [Q]uit' })
+vim.keymap.set('n', '<leader>dr', function() require('dap').restart() end, { desc = '[D]ebug [R]estart' })
+vim.keymap.set('n', '<leader>de', function() require('dap').repl.open() end, { desc = '[D]ebug R[E]PL' })
+vim.keymap.set('n', '<leader>dh', function() require('dap.ui.widgets').hover() end, { desc = '[D]ebug [H]over Variables' })
+vim.keymap.set('n', '<leader>ds', function()
+  local widgets = require('dap.ui.widgets')
   widgets.centered_float(widgets.scopes)
-end, { desc = "[D]ebug [S]copes" })
+end, { desc = '[D]ebug [S]copes' })
 -------------------------------------------------------------------------------------------------------
 -------------------[END]------------------------
 -------------------------------------------------------------------------------------------------------

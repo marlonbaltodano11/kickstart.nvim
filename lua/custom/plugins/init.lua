@@ -9,14 +9,17 @@ add 'https://github.com/olimorris/codecompanion.nvim'
 add 'https://github.com/ravitemer/codecompanion-history.nvim'
 add 'https://github.com/stevearc/dressing.nvim'
 
-
 require('codecompanion').setup {
   adapters = {
     http = require('custom.plugins.codecompanion.adapters'),
   },
   interactions = require('custom.plugins.codecompanion.interactions'),
   rules = require('custom.plugins.codecompanion.rules'),
-  prompt_library = vim.tbl_deep_extend('force', require('custom.plugins.codecompanion.prompts'), require('custom.plugins.codecompanion.skills')),
+  prompt_library = vim.tbl_deep_extend(
+    'force',
+    require('custom.plugins.codecompanion.prompts'),
+    require('custom.plugins.codecompanion.skills')
+  ),
   extensions = require('custom.plugins.codecompanion.extensions'),
 }
 
@@ -54,12 +57,12 @@ git_conflict.setup {
 }
 
 local conflict_mappings = {
-  { { 'n', 'v' }, 'co', function() git_conflict.choose 'ours' end, 'Keep ours' },
-  { { 'n', 'v' }, 'ct', function() git_conflict.choose 'theirs' end, 'Keep theirs' },
-  { { 'n', 'v' }, 'cb', function() git_conflict.choose 'both' end, 'Keep both' },
-  { { 'n', 'v' }, 'c0', function() git_conflict.choose 'none' end, 'Keep neither' },
-  { 'n', ']x', function() git_conflict.find_next 'ours' end, 'Next conflict' },
-  { 'n', '[x', function() git_conflict.find_prev 'ours' end, 'Previous conflict' },
+  { { 'n', 'v' }, '<leader>ho', function() git_conflict.choose('ours') end, 'Keep ours' },
+  { { 'n', 'v' }, '<leader>ht', function() git_conflict.choose('theirs') end, 'Keep theirs' },
+  { { 'n', 'v' }, '<leader>h2', function() git_conflict.choose('both') end, 'Keep both' },
+  { { 'n', 'v' }, '<leader>h0', function() git_conflict.choose('none') end, 'Keep neither' },
+  { 'n', ']x', function() git_conflict.find_next('ours') end, 'Next conflict' },
+  { 'n', '[x', function() git_conflict.find_prev('ours') end, 'Previous conflict' },
 }
 
 local function set_conflict_mappings(bufnr)
@@ -92,30 +95,45 @@ vim.api.nvim_create_autocmd('User', {
 vim.api.nvim_create_autocmd('User', {
   group = conflict_group,
   pattern = 'GitConflictResolved',
-  callback = function(args) clear_conflict_mappings(args.buf or vim.api.nvim_get_current_buf()) end,
+  callback = function(args)
+    clear_conflict_mappings(args.buf or vim.api.nvim_get_current_buf())
+  end,
 })
 
--- Debugging, including the Windows CoreCLR adapter used by easy-dotnet.
+-- Debugging (nvim-dap).
 add 'https://github.com/mfussenegger/nvim-dap'
 add 'https://github.com/rcarriga/nvim-dap-ui'
 add 'https://github.com/nvim-neotest/nvim-nio'
 add 'https://github.com/theHamsta/nvim-dap-virtual-text'
+
 local dap = require('dap')
 local dapui = require('dapui')
 dapui.setup {}
 require('nvim-dap-virtual-text').setup {}
+
 dap.listeners.after.event_initialized['dapui_config'] = dapui.open
 dap.listeners.before.event_terminated['dapui_config'] = dapui.close
 dap.listeners.before.event_exited['dapui_config'] = dapui.close
-dap.adapters.coreclr = { type = 'executable', command = 'netcoredbg.exe', args = { '--interpreter=vscode' } }
+
+-- Adapta la extensión del binario dinámicamente según el SO
+local netcoredbg_bin = vim.fn.has('win32') == 1 and 'netcoredbg.exe' or 'netcoredbg'
+dap.adapters.coreclr = {
+  type = 'executable',
+  command = netcoredbg_bin,
+  args = { '--interpreter=vscode' },
+}
 dap.configurations.cs = {}
 
--- C# project and test workflow.
+-- C# project and test workflow (easy-dotnet).
 add 'https://github.com/GustavEikaas/easy-dotnet.nvim'
 local dotnet = require('easy-dotnet')
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 local has_blink, blink = pcall(require, 'blink.cmp')
-if has_blink and blink.get_lsp_capabilities then capabilities = blink.get_lsp_capabilities(capabilities) end
+
+if has_blink and blink.get_lsp_capabilities then
+  capabilities = blink.get_lsp_capabilities(capabilities)
+end
+
 dotnet.setup {
   managed_terminal = { auto_hide = true, auto_hide_delay = 2000 },
   lsp = {
@@ -134,26 +152,22 @@ dotnet.setup {
   fsproj_mappings = true,
 }
 
+-- Mapeos estandarizados para C#
 vim.keymap.set('n', '<leader>cr', '<cmd>Dotnet run profile Development<cr>', { desc = '[C]sharp [R]un' })
 vim.keymap.set('n', '<leader>cs', '<cmd>Dotnet select_project<cr>', { desc = '[C]sharp [S]elect Project' })
 vim.keymap.set('n', '<leader>cb', '<cmd>Dotnet build quickfix<cr>', { desc = '[C]sharp [B]uild' })
 vim.keymap.set('n', '<leader>cR', '<cmd>Dotnet restore<cr>', { desc = '[C]sharp [R]estore' })
 vim.keymap.set('n', '<leader>cC', '<cmd>Dotnet clean<cr>', { desc = '[C]sharp [C]lean' })
 vim.keymap.set('n', '<leader>cat', '<cmd>Dotnet test<cr>', { desc = '[C]sharp [T]est' })
-
 vim.keymap.set({ 'n', 'v', 't' }, '<leader>cT', '<cmd>Dotnet terminal toggle<CR>', { desc = '[C]sharp [T]erminal Toggle' })
 
-
 -- Navigation and diagnostics.
-vim.pack.add {
-  'https://github.com/folke/flash.nvim',
-  'https://github.com/folke/trouble.nvim',
-}
+add 'https://github.com/folke/flash.nvim'
+add 'https://github.com/folke/trouble.nvim'
 require('custom.plugins.flash').setup()
 require('custom.plugins.trouble').setup()
 
-vim.pack.add {
-  'https://github.com/nvim-neotest/neotest',
-  'https://github.com/CitizenHarris/neotest-dotnet',
-}
+-- Testing Framework (Neotest).
+add 'https://github.com/nvim-neotest/neotest'
+add 'https://github.com/CitizenHarris/neotest-dotnet'
 require('custom.plugins.neotest').setup()
