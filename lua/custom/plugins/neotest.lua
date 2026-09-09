@@ -22,7 +22,8 @@ function M.setup()
 
   -- 3. Instanciar el adaptador de neotest-dotnet.
   --    El adaptador ya resuelve el root por `.csproj`/`.fsproj` (discovery_root='project'),
-  --    así que no se sobreescribe `adapter.root` para no romper el descubrimiento.
+  --    así que no se sobreescribe `adapter.root`. El cwd de cada run se ancla al root
+  --    resuelto para que el discovery no se dispare hacia nvim-data u otro directorio superior.
   local adapter = require('neotest-dotnet') {
     discovery_root = 'project',
     dap = {
@@ -30,6 +31,14 @@ function M.setup()
       strategy = debug_strategy,
     },
   }
+
+  local original_root = adapter.root
+  adapter.root = function(path)
+    local root = original_root(path)
+    if not root then return nil end
+    vim.g.neotest_dotnet_cwd_root = root
+    return root
+  end
 
   -- Filter folders for optimized Treesitter/Discovery scanning
   adapter.filter_dir = function(name)
@@ -59,7 +68,12 @@ function M.setup()
   vim.keymap.set('n', '<leader>tf', function() neotest.run.run(vim.fn.expand '%') end, opts('[T]est [F]ile'))
   vim.keymap.set('n', '<leader>td', function() neotest.run.run { strategy = 'dap' } end, opts('[T]est [D]ebug Nearest'))
   vim.keymap.set('n', '<leader>ts', function() neotest.summary.toggle() end, opts('[T]est [S]ummary'))
-  vim.keymap.set('n', '<leader>to', function() neotest.output_panel.toggle() end, opts('[T]est [O]utput Panel'))
+  vim.keymap.set('n', '<leader>to', function() neotest.output.open { enter = true } end, opts('[T]est [O]utput float'))
+  vim.keymap.set('n', '<leader>tO', function() neotest.output_panel.toggle() end, opts('[T]est [O]utput panel'))
+  vim.keymap.set('n', '<leader>tw', function() neotest.watch.toggle() end, opts('[T]est [W]atch nearest'))
+  vim.keymap.set('n', '<leader>tx', function() neotest.run.stop() end, opts('[T]est Stop (nearest)'))
+  vim.keymap.set('n', ']t', function() neotest.jump.next { status = 'failed' } end, opts('Next [T]est failure'))
+  vim.keymap.set('n', '[t', function() neotest.jump.prev { status = 'failed' } end, opts('Previous [T]est failure'))
 end
 
 return M

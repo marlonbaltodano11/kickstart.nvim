@@ -43,6 +43,9 @@ vim.opt.foldlevel = 99
 vim.opt.foldlevelstart = 99
 vim.opt.foldenable = true
 
+-- No cortar líneas largas: `wrap = false` evita el soft-wrap del código.
+vim.opt.wrap = false
+
 vim.opt.diffopt:append {
   'vertical',
   'algorithm:histogram',

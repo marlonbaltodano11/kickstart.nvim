@@ -6,9 +6,9 @@ local term_win = nil
 
 local function get_shell_command()
   if vim.fn.has('win32') == 1 then
-    return 'C:\\PROGRA~1\\Git\\bin\\bash.exe --login -i'
+    return { 'C:\\PROGRA~1\\Git\\bin\\bash.exe', '--login', '-i' }
   end
-  return vim.o.shell
+  return { vim.o.shell }
 end
 
 local function toggle_terminal()
@@ -37,8 +37,8 @@ end
 -- Atajos para Terminal
 vim.keymap.set('n', '<leader>`', toggle_terminal, { desc = 'Toggle Terminal' })
 vim.keymap.set('t', '<leader>`', function()
-  vim.cmd('stopinsert')
-  toggle_terminal()
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<C-\\><C-n>', true, true, true), 'n', false)
+  vim.schedule(toggle_terminal)
 end, { desc = 'Toggle Terminal' })
 
 -------------------------------------------------------------------------------------------------------
@@ -99,12 +99,12 @@ vim.keymap.set('v', '<', '<gv')
 vim.keymap.set('v', '>', '>gv')
 
 -- Jump to the NEXT ERROR
-vim.keymap.set('n', ']E', function()
+vim.keymap.set('n', ']e', function()
   vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR })
 end, { desc = 'Jump to next error' })
 
 -- Jump to the PREVIOUS ERROR
-vim.keymap.set('n', '[E', function()
+vim.keymap.set('n', '[e', function()
   vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR })
 end, { desc = 'Jump to previous error' })
 
@@ -116,6 +116,7 @@ vim.keymap.set('n', '<F5>', function() require('dap').continue() end, { desc = '
 vim.keymap.set('n', '<F9>', function() require('dap').step_into() end, { desc = 'Step Into' })
 vim.keymap.set('n', '<F10>', function() require('dap').step_over() end, { desc = 'Step Over' })
 vim.keymap.set('n', '<F12>', function() require('dap').step_out() end, { desc = 'Step Out' })
+vim.keymap.set('n', '<F7>', function() require('dapui').toggle() end, { desc = 'Toggle DAP UI' })
 
 vim.keymap.set('n', '<leader>b', function() require('dap').toggle_breakpoint() end, { desc = 'Toggle breakpoint' })
 vim.keymap.set('n', '<leader>B', function()
@@ -169,3 +170,29 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.fn.setreg('+', event.regcontents, event.regtype)
   end,
 })
+
+-- Yank method/class textobjects (C# walker registrado en mini.ai)
+vim.keymap.set('n', '<leader>ym', 'yam', { remap = true, silent = true, desc = 'Yank around method' })
+vim.keymap.set('n', '<leader>yi', 'yim', { remap = true, silent = true, desc = 'Yank inside method' })
+vim.keymap.set('n', '<leader>yc', 'yac', { remap = true, silent = true, desc = 'Yank around class' })
+
+-- Paste policy: `p`/`P` use the system clipboard when no register was
+-- specified explicitly; `gp`/`gP` paste from the last delete/change ("1).
+--
+-- <expr> lets Vim's own v:register decide: an explicit register ("ap) is
+-- honored as-is, while the implicit (unset) case maps to the + register.
+local function clip_paste_rhs(rhs)
+  return function()
+    local reg = vim.v.register
+    if reg == '' then reg = '+' end
+    return '"' .. reg .. rhs
+  end
+end
+
+vim.keymap.set({ 'n', 'x' }, 'p', clip_paste_rhs 'p', { expr = true, desc = 'Paste after (clipboard if no register)' })
+vim.keymap.set({ 'n', 'x' }, 'P', clip_paste_rhs 'P', { expr = true, desc = 'Paste before (clipboard if no register)' })
+vim.keymap.set('n', 'Y', '"+y$', { desc = 'Yank to end of line into clipboard' })
+vim.keymap.set({ 'n', 'x' }, 'gp', '"1p', { desc = 'Paste after from last delete/change' })
+vim.keymap.set({ 'n', 'x' }, 'gP', '"1P', { desc = 'Paste before from last delete/change' })
+
+vim.keymap.set('n', '<leader>sF', function() require('telescope.builtin').find_files({ hidden = true }) end, { desc = '[S]earch All [F]iles' })

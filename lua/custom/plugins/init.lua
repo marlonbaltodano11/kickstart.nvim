@@ -121,6 +121,9 @@ dap.adapters.coreclr = {
   type = 'executable',
   command = netcoredbg_bin,
   args = { '--interpreter=vscode' },
+  -- En Windows el hijo debe quedar conectado; de lo contrario netcoredbg
+  -- queda huérfano y el DAP se cae al terminar la sesión.
+  options = { detached = vim.fn.has('win32') ~= 1 },
 }
 dap.configurations.cs = {}
 
@@ -166,6 +169,12 @@ add 'https://github.com/folke/flash.nvim'
 add 'https://github.com/folke/trouble.nvim'
 require('custom.plugins.flash').setup()
 require('custom.plugins.trouble').setup()
+
+-- Git integration (Fugitive) y búsqueda en archivos ignorados por git.
+add 'https://github.com/tpope/vim-fugitive'
+add 'https://github.com/junegunn/fzf.vim'
+add 'https://github.com/junegunn/fzf'
+vim.keymap.set('n', '<leader>hB', function() vim.cmd 'Git blame' end, { desc = 'git [B]lame file (Fugitive)' })
 
 -- Testing Framework (Neotest).
 add 'https://github.com/nvim-neotest/neotest'

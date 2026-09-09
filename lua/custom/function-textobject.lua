@@ -1,5 +1,5 @@
 -- Treesitter-backed textobjects for C# functions and types.
--- Designed to integrate cleanly with mini.ai.
+-- Designed to integrate cleanly with mini.ai (registered in init.lua).
 local M = {}
 
 local METHOD_TYPES = { 'method_declaration', 'constructor_declaration', 'local_function_statement' }
@@ -110,35 +110,8 @@ local function make_spec(types)
   end
 end
 
--- Exported specifications for manual mini.ai integration
+-- Exported specifications for mini.ai integration
 M.spec_method = make_spec(METHOD_TYPES)
 M.spec_type = make_spec(TYPE_TYPES)
-
-function M.setup()
-  local ok, mini_ai = pcall(require, 'mini.ai')
-  if not ok then
-    vim.notify('mini.ai not found, skipping custom C# textobjects', vim.log.levels.WARN)
-    return
-  end
-
-  -- Layer our textobjects on top of the existing mini.ai config without
-  -- wiping the user's own settings. mini.ai deep-extends defaults internally.
-  local config = {}
-  if vim.g.miniai_disable == nil and vim.b.miniai_disable == nil then
-    config.custom_textobjects = {
-      m = M.spec_method,
-      F = M.spec_type,
-      c = M.spec_type,
-    }
-  end
-
-  mini_ai.setup(config)
-
-  -- Helper keymaps for yanking methods/classes
-  local opts = { remap = true, silent = true }
-  vim.keymap.set('n', '<leader>ym', 'yam', vim.tbl_extend('force', opts, { desc = 'Yank around method' }))
-  vim.keymap.set('n', '<leader>yi', 'yim', vim.tbl_extend('force', opts, { desc = 'Yank inside method' }))
-  vim.keymap.set('n', '<leader>yc', 'yac', vim.tbl_extend('force', opts, { desc = 'Yank around class' }))
-end
 
 return M

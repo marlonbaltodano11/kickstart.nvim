@@ -22,18 +22,21 @@ function M.apply()
   build_spec_utils.create_single_spec = function(position, proj_root, filter_arg, dotnet_additional_args)
     local results_path = vim.fn.tempname() .. '.trx'
     filter_arg = filter_arg or ''
-    local cwd = vim.uv.cwd() or '.'
+    -- Anclar el run al root resuelto por el adaptador (cwd_root); si no, el
+    -- discovery puede subir hasta nvim-data u otro directorio superior.
+    local session_cwd = vim.g.neotest_dotnet_cwd_root or vim.uv.cwd() or '.'
 
-    -- 1. Validar que proj_root no se salga del CWD actual para prevenir escaneos fuera del proyecto
+    -- 1. Validar que proj_root no se salga del CWD de la sesión para prevenir
+    --    escaneos fuera del proyecto
     if proj_root and proj_root ~= '' then
       local norm_proj = vim.fs.normalize(proj_root)
-      local norm_cwd = vim.fs.normalize(cwd)
+      local norm_cwd = vim.fs.normalize(session_cwd)
 
       if not vim.startswith(norm_proj, norm_cwd) then
-        proj_root = cwd
+        proj_root = session_cwd
       end
     else
-      proj_root = cwd
+      proj_root = session_cwd
     end
 
     -- 2. Resolver el archivo .csproj sin realizar búsquedas recursivas profundas
@@ -53,9 +56,17 @@ function M.apply()
 
     csproj = csproj or proj_root
 
+    -- 3. El cwd del proceso es el directorio del proyecto (o del .csproj),
+    --    para que rutas relativas, runsettings, etc. resuelvan ahí.
+    local cwd = proj_root
+    local csproj_stat = vim.uv.fs_stat(csproj)
+    if csproj ~= proj_root and csproj_stat and csproj_stat.type == 'file' then
+      cwd = vim.fs.dirname(csproj)
+    end
+
     local command = { 'dotnet', 'test', csproj }
 
-    -- 3. Tokenizar filter_arg si contiene banderas con espacios
+    -- 5. Tokenizar filter_arg si contiene banderas con espacios
     if filter_arg ~= '' then
       for token in filter_arg:gmatch('%S+') do
         table.insert(command, token)
@@ -70,18 +81,35 @@ function M.apply()
     table.insert(command, '--no-progress')
     table.insert(command, '--no-ansi')
 
+    -- 6. Anexar argumentos adicionales, descartando `--logger`/`-logger` (con
+    --    su valor) y `--report-trx`/`--report-trx-filename` para que no pisen
+    --    el TRX que genera este overlay.
+    local skip_value_flags = {
+      ['-logger'] = true,
+      ['--logger'] = true,
+      ['--report-trx'] = true,
+      ['--report-trx-filename'] = true,
+    }
+
     if dotnet_additional_args then
       local i = 1
       while i <= #dotnet_additional_args do
         local arg = dotnet_additional_args[i]
-        if arg == '-logger' or arg == '--logger' then
-          -- Drop the logger flag together with its value.
-          i = i + 2
-        elseif type(arg) == 'string' and vim.startswith(arg, '--logger=') then
-          i = i + 1
-        else
+        if type(arg) ~= 'string' then
           table.insert(command, arg)
           i = i + 1
+        else
+          local flag, value = arg:match '^([^=]+)=([^=]*)$'
+          if flag and skip_value_flags[flag] then
+            -- Forma `--logger=...`: descartar el flag completo.
+            i = i + 1
+          elseif skip_value_flags[arg] then
+            -- Forma `--logger <valor>`: descartar flag y su valor.
+            i = i + 2
+          else
+            table.insert(command, arg)
+            i = i + 1
+          end
         end
       end
     end
@@ -96,6 +124,7 @@ function M.apply()
 
     return {
       command = command, -- Array de argumentos para ejecución segura sin errores de shell
+      cwd = cwd,
       context = {
         results_path = results_path,
         file = position.path,

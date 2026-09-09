@@ -487,9 +487,12 @@ do
   end
 
   require('mini.files').setup {}
+  local minifiles = require 'mini.files'
   vim.keymap.set('n', '<leader>e', function()
-    require('mini.files').open(vim.api.nvim_buf_get_name(0), true)
-  end, { desc = 'Open mini.files' })
+    local bufname = vim.api.nvim_buf_get_name(0)
+    if bufname:find '^%w+://' then bufname = nil end
+    if minifiles.close() == nil then minifiles.open(bufname, true) end
+  end, { desc = 'Toggle mini.files' })
 
 
   -- Persistent file bookmarks using mini.visits. The `core` label is the
@@ -500,10 +503,10 @@ do
   }
   vim.keymap.set('n', '<leader>vv', function() MiniVisits.add_label('core') end, { desc = 'Add current file to Core' })
   vim.keymap.set('n', '<leader>vV', function() MiniVisits.remove_label('core') end, { desc = 'Remove current file from Core' })
-  vim.keymap.set('n', '<leader>vc', function() MiniVisits.select_path { filter = { label = 'core' } } end, { desc = 'Choose a Core file' })
-  vim.keymap.set('n', '<leader>vr', function() MiniVisits.select_path { filter = { cwd = true } } end, { desc = 'Recent files in cwd' })
-  vim.keymap.set('n', ']v', function() MiniVisits.iterate_paths('forward', { filter = { label = 'core' } }) end, { desc = 'Next Core file' })
-  vim.keymap.set('n', '[v', function() MiniVisits.iterate_paths('backward', { filter = { label = 'core' } }) end, { desc = 'Previous Core file' })
+  vim.keymap.set('n', '<leader>vc', function() MiniVisits.select_path('', { filter = 'core' }) end, { desc = 'Choose a Core file' })
+  vim.keymap.set('n', '<leader>vr', function() MiniVisits.select_path(nil, { sort = MiniVisits.gen_sort.default { recency_weight = 1 } }) end, { desc = 'Recent files in cwd' })
+  vim.keymap.set('n', ']v', function() MiniVisits.iterate_paths('forward', vim.fn.getcwd(), { filter = 'core' }) end, { desc = 'Next Core file' })
+  vim.keymap.set('n', '[v', function() MiniVisits.iterate_paths('backward', vim.fn.getcwd(), { filter = 'core' }) end, { desc = 'Previous Core file' })
 
 
   -- Add/delete/replace surroundings (brackets, quotes, etc.)
@@ -520,9 +523,21 @@ do
   -- Set `use_icons` to true if you have a Nerd Font
   statusline.setup { use_icons = vim.g.have_nerd_font }
 
-  -- Basic mini.ai setup (mappings, defaults). Custom C# textobjects are
-  -- registered later by `custom.plugins` via `custom.function-textobject`.
-  require('mini.ai').setup {}
+  -- Basic mini.ai setup with C# walker textobjects (m/F/c), built-in ones
+  -- and a custom separator walker for `.`/`/`/`o`/`l` (`./o///l`).
+  local mini_ai = require 'mini.ai'
+  local csharp_textobjects = require 'custom.function-textobject'
+  mini_ai.setup {
+    custom_textobjects = {
+      m = csharp_textobjects.spec_method,
+      F = csharp_textobjects.spec_type,
+      c = csharp_textobjects.spec_type,
+      o = mini_ai.gen_spec.treesitter { a = '@block.outer', i = '@block.inner' },
+      l = mini_ai.gen_spec.treesitter { a = '@call.outer', i = '@call.inner' },
+      ['/'] = mini_ai.gen_spec.treesitter { a = '@comment.outer', i = '@comment.outer' },
+      ['.'] = mini_ai.gen_spec.treesitter { a = '@class.outer', i = '@class.inner' },
+    },
+  }
 
   -- You can configure sections in the statusline by overriding their
   -- default behavior. For example, here we set the section for
