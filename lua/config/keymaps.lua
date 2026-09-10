@@ -184,7 +184,9 @@ vim.keymap.set('n', '<leader>yc', 'yac', { remap = true, silent = true, desc = '
 local function clip_paste_rhs(rhs)
   return function()
     local reg = vim.v.register
-    if reg == '' then reg = '+' end
+    if reg == '"' or reg == '' then
+      reg = '+'
+    end
     return '"' .. reg .. rhs
   end
 end
@@ -194,5 +196,3 @@ vim.keymap.set({ 'n', 'x' }, 'P', clip_paste_rhs 'P', { expr = true, desc = 'Pas
 vim.keymap.set('n', 'Y', '"+y$', { desc = 'Yank to end of line into clipboard' })
 vim.keymap.set({ 'n', 'x' }, 'gp', '"1p', { desc = 'Paste after from last delete/change' })
 vim.keymap.set({ 'n', 'x' }, 'gP', '"1P', { desc = 'Paste before from last delete/change' })
-
-vim.keymap.set('n', '<leader>sF', function() require('telescope.builtin').find_files({ hidden = true }) end, { desc = '[S]earch All [F]iles' })

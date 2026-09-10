@@ -426,8 +426,8 @@ do
       vim.keymap.set('n', '<leader>hQ', function() gitsigns.setqflist 'all' end, { desc = 'git hunk [Q]uickfix list (all files in repo)', buf = bufnr })
       vim.keymap.set('n', '<leader>hq', gitsigns.setqflist, { desc = 'git hunk [q]uickfix list (all changes in this file)', buf = bufnr })
       -- Toggles
-      vim.keymap.set('n', '<leader>tb', gitsigns.toggle_current_line_blame, { desc = '[T]oggle git show [b]lame line', buf = bufnr })
-      vim.keymap.set('n', '<leader>tw', gitsigns.toggle_word_diff, { desc = '[T]oggle git intra-line [w]ord diff', buf = bufnr })
+      vim.keymap.set('n', '<leader>htb', gitsigns.toggle_current_line_blame, { desc = '[T]oggle git show [b]lame line', buf = bufnr })
+      vim.keymap.set('n', '<leader>htw', gitsigns.toggle_word_diff, { desc = '[T]oggle git intra-line [w]ord diff', buf = bufnr })
       -- Text object
       vim.keymap.set({ 'o', 'x' }, 'ih', gitsigns.select_hunk, { desc = 'text object [i]nside [h]unk', buf = bufnr })
     end,
@@ -503,7 +503,7 @@ do
   }
   vim.keymap.set('n', '<leader>vv', function() MiniVisits.add_label('core') end, { desc = 'Add current file to Core' })
   vim.keymap.set('n', '<leader>vV', function() MiniVisits.remove_label('core') end, { desc = 'Remove current file from Core' })
-  vim.keymap.set('n', '<leader>vc', function() MiniVisits.select_path('', { filter = 'core' }) end, { desc = 'Choose a Core file' })
+  vim.keymap.set('n', '<leader>vc', function() MiniVisits.select_path(nil, { filter = 'core' }) end, { desc = 'Choose a Core file' })
   vim.keymap.set('n', '<leader>vr', function() MiniVisits.select_path(nil, { sort = MiniVisits.gen_sort.default { recency_weight = 1 } }) end, { desc = 'Recent files in cwd' })
   vim.keymap.set('n', ']v', function() MiniVisits.iterate_paths('forward', vim.fn.getcwd(), { filter = 'core' }) end, { desc = 'Next Core file' })
   vim.keymap.set('n', '[v', function() MiniVisits.iterate_paths('backward', vim.fn.getcwd(), { filter = 'core' }) end, { desc = 'Previous Core file' })
@@ -533,8 +533,8 @@ do
       F = csharp_textobjects.spec_type,
       c = csharp_textobjects.spec_type,
       o = mini_ai.gen_spec.treesitter { a = '@block.outer', i = '@block.inner' },
-      l = mini_ai.gen_spec.treesitter { a = '@call.outer', i = '@call.inner' },
-      ['/'] = mini_ai.gen_spec.treesitter { a = '@comment.outer', i = '@comment.outer' },
+      l = mini_ai.gen_spec.treesitter { a = '@loop.outer', i = '@loop.inner' },
+      ['/'] = mini_ai.gen_spec.treesitter { a = '@comment.outer', i = '@comment.inner' },
       ['.'] = mini_ai.gen_spec.treesitter { a = '@class.outer', i = '@class.inner' },
     },
   }
@@ -614,6 +614,7 @@ do
   vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
   vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
   vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
+  vim.keymap.set('n', '<leader>sF', function() builtin.find_files({ hidden = true, no_ignore = true }) end, { desc = '[S]earch All [F]iles' })
   vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
   vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
   vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
