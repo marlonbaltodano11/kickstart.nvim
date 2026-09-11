@@ -13,6 +13,13 @@ local keys = {
     mode = { 'n', 'v' },
     desc = 'CodeCompanion Actions',
   },
+  {
+    '<leader>al',
+    function() require('codecompanion').toggle_cli() end,
+    mode = { 'n', 'v' },
+    desc = 'Toggle CodeCompanion CLI (OpenCode)',
+  },
 }
 
 return keys
+

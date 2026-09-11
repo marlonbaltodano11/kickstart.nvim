@@ -12,6 +12,7 @@ return {
   opts = {
     adapters = {
       http = require('custom.plugins.codecompanion.adapters'),
+      acp = require('custom.plugins.codecompanion.acp'),
     },
     interactions = require('custom.plugins.codecompanion.interactions'),
     rules = require('custom.plugins.codecompanion.rules'),

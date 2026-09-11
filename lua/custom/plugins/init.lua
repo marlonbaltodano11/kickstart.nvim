@@ -12,6 +12,7 @@ add 'https://github.com/stevearc/dressing.nvim'
 require('codecompanion').setup {
   adapters = {
     http = require('custom.plugins.codecompanion.adapters'),
+    acp = require('custom.plugins.codecompanion.acp'),
   },
   interactions = require('custom.plugins.codecompanion.interactions'),
   rules = require('custom.plugins.codecompanion.rules'),
