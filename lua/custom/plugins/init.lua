@@ -29,6 +29,10 @@ for _, mapping in ipairs(codecompanion_keys) do
   vim.keymap.set(mapping.mode or 'n', mapping[1], mapping[2], { desc = mapping.desc })
 end
 
+-- AI code completion (ghost text) with minuet.
+add 'https://github.com/milanglacier/minuet-ai.nvim'
+require('custom.plugins.minuet').setup()
+
 -- Code outline.
 add 'https://github.com/stevearc/aerial.nvim'
 require('aerial').setup {
