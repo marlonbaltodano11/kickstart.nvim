@@ -1,7 +1,17 @@
 local M = {}
 
+-- Minuet starts disabled; toggle it with <leader>ai.
+local minuet_enabled = false
+
 function M.setup()
   require('minuet').setup {
+    -- Blocks automatic completions (virtualtext, cmp, blink, lsp, duet)
+    -- while returning false. Manual invocation keeps working.
+    enable_predicates = {
+      function()
+        return minuet_enabled
+      end,
+    },
     provider = 'openai_compatible',
     request_timeout = 2.5,
     throttle = 1500,
@@ -151,7 +161,13 @@ local function double(n)
     return result
   end
 
-  vim.keymap.set('n', '<leader>ai', '<cmd>Minuet virtualtext toggle<cr>', { desc = 'Minuet (IA completions) toggle' })
+  vim.keymap.set('n', '<leader>ai', function()
+    minuet_enabled = not minuet_enabled
+    vim.notify('Minuet ' .. (minuet_enabled and 'enabled' or 'disabled'), vim.log.levels.INFO)
+    if not minuet_enabled then
+      require('minuet.virtualtext').action.dismiss()
+    end
+  end, { desc = 'Minuet (IA completions) toggle' })
 end
 
 return M
